@@ -1625,6 +1625,15 @@ XpraClient.prototype._window_set_focus = function(win) {
 	if (client.focus == wid) {
 		return;
 	}
+
+	// Keep DESKTOP type windows per default setttings lower than all other windows.
+	if (default_settings !== undefined && default_settings.auto_fullscreen_desktop_class !== undefined && default_settings.auto_fullscreen_desktop_class.length > 0) {
+		var auto_fullscreen_desktop_class = default_settings.auto_fullscreen_desktop_class;
+        if (win.windowtype == "DESKTOP" && win.metadata['class-instance'].includes(auto_fullscreen_desktop_class)) {
+            return;
+        }
+    }
+
 	const top_stacking_layer = Object.keys(client.id_to_window).length;
 	const old_stacking_layer = win.stacking_layer;
 	const had_focus = client.focus;
@@ -2807,6 +2816,25 @@ XpraClient.prototype._process_eos = function(packet, ctx) {
 
 
 XpraClient.prototype.request_redraw = function(win) {
+
+	// Force fullscreen on a a given window name from the provided settings
+	if (default_settings !== undefined && default_settings.auto_fullscreen !== undefined && default_settings.auto_fullscreen.length > 0) {
+        var pattern = new RegExp(".*" + default_settings.auto_fullscreen + ".*");
+        if (win.fullscreen === false && win.metadata.title.match(pattern)) {
+            clog("auto fullscreen window: " + win.metadata.title);
+            win.set_fullscreen(true);
+        }
+    }
+
+	// Make a DESKTOP type window fullscreen automatically, this resizes things like xfdesktop according to the window size.
+	if (default_settings !== undefined && default_settings.auto_fullscreen_desktop_class !== undefined && default_settings.auto_fullscreen_desktop_class.length > 0) {
+		var auto_fullscreen_desktop_class = default_settings.auto_fullscreen_desktop_class;
+        if (win.fullscreen === false && win.windowtype == "DESKTOP" && win.metadata['class-instance'].includes(auto_fullscreen_desktop_class)) {
+            clog("auto fullscreen desktop window: " + win.metadata.title);
+            win.set_fullscreen(true);
+        }
+    }
+
 	if (document.hidden) {
 		this.debug("draw", "not redrawing, document.hidden=", document.hidden);
 		return;

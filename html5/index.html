@@ -109,6 +109,7 @@
 					<li class="-hasSubmenu -noChevron">
 						<a href="#" title="Xpra" class="noDrag" data-icon="menu"></a>
 						<ul id="menu_list">
+							<!-- SELKIES ONLY
 							<li class="-hasSubmenu" id="startmenuentry" style="display: none">
 								<a data-icon="apps" href="#">Start</a>
 								<ul id="startmenu">
@@ -122,14 +123,12 @@
 									<li><a href="#" data-icon="exit_to_app" onclick="confirm_shutdown_server(event); return false">Shutdown Server</a></li>
 								</ul>
 							</li>
-							<!--
 							<li class="-hasSubmenu">
 								<a href="#" data-icon="list">Features</a>
 								<ul>
 									<li><a href="#" data-icon="message">Notifications</a></li>
 								</ul>
 							</li>
-							-->
 							<li class="-hasSubmenu">
 								<a href="#" data-icon="info">Information</a>
 								<ul>
@@ -138,6 +137,7 @@
 									<li><a href="#" data-icon="bug_report" onclick="show_bugreport(event); return false">Bug Report</a></li>
 								</ul>
 							</li>
+							-->
 							<li><a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a></li>
 							<li><a href="#" data-icon="refresh" onclick="location.reload()">Reload</a></li>
 							<li><a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a></li>

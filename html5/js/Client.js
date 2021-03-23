@@ -2368,6 +2368,8 @@ XpraClient.prototype.process_xdg_menu = function() {
 	//remove current menu:
 	$('#startmenu li').remove();
 	const startmenu = document.getElementById("startmenu");
+	// SELKIES - removed startmenu elements.
+	if (startmenu === null) return;
 	for(key in this.xdg_menu){
 		const category = this.xdg_menu[key];
 		const li = document.createElement("li");

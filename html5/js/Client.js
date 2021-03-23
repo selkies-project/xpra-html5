@@ -2854,17 +2854,19 @@ XpraClient.prototype.request_redraw = function(win) {
 
 	// Force fullscreen on a a given window name from the provided settings
 	if (default_settings !== undefined && default_settings.auto_fullscreen !== undefined && default_settings.auto_fullscreen.length > 0) {
-        var pattern = new RegExp(".*" + default_settings.auto_fullscreen + ".*");
-        if (win.fullscreen === false && win.metadata.title.match(pattern)) {
-            clog("auto fullscreen window: " + win.metadata.title);
-            win.set_fullscreen(true);
-        }
-    }
+		var pattern = new RegExp(".*" + default_settings.auto_fullscreen + ".*");
+		if (win.fullscreen === false && win.metadata.title.match(pattern)) {
+			clog("auto fullscreen window: " + win.metadata.title);
+			win.set_fullscreen(true);
+			win.screen_resized();
+		}
+	}
 
 	// Make a DESKTOP type window fullscreen automatically, this resizes things like xfdesktop according to the window size.
 	if (win.fullscreen === false && client.is_window_desktop(win)) {
 		clog("auto fullscreen desktop window: " + win.metadata.title);
 		win.set_fullscreen(true);
+		win.screen_resized();
 	}
 
 	if (document.hidden) {

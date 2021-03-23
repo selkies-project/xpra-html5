@@ -367,7 +367,16 @@
 				$("button.menu-button").prop('disabled', false);
 			}
 			function connection_lost() {
-				clog("connection-lost");
+				clog("connection-lost, reconnect attempt: " + client.reconnect_attempt + "/" + client.reconnect_count);
+				if (client.reconnect_attempt >= 2) {
+					window.clearNotifications();
+					window.doNotification("", 0, "Connection lost", "Connection lost, redirecting in 5 seconds...", 10);
+					// Redirect to root url
+					setTimeout(()=>{
+						window.clearNotifications();
+						window.location.replace(window.location.href.replace(window.location.pathname, "/"));
+					}, 5000);
+				}
 				cleanup_dialogs();
 				$("button.menu-button").prop('disabled', true);
 			}

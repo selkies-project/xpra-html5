@@ -1467,6 +1467,25 @@ XpraClient.prototype.do_window_mouse_click = function(e, window, pressed) {
 	}, send_delay);
 };
 
+// Source: https://deepmikoto.com/coding/1--javascript-detect-mouse-wheel-direction
+XpraClient.prototype.detect_mouse_scroll_direction = function(e, window) {
+	var delta = null
+	var direction = false;
+	if ( !e ) { // if the event is not provided, we get it from the window object
+		e = window.event;
+	}
+	if ( e.wheelDelta ) { // will work in most cases
+		delta = e.wheelDelta / 60;
+	} else if ( e.detail ) { // fallback for Firefox
+		delta = -e.detail / 2;
+	}
+	if ( delta !== null ) {
+		direction = delta > 0 ? 'up' : 'down';
+	}
+
+	return direction;
+};
+
 XpraClient.prototype._window_mouse_scroll = function(ctx, e, window) {
 	ctx.do_window_mouse_scroll(e, window);
 };
@@ -1492,7 +1511,10 @@ XpraClient.prototype.do_window_mouse_scroll = function(e, window) {
 	if (this.scroll_reverse_x) {
 		px = -px;
 	}
-	if (this.scroll_reverse_y) {
+
+	// Detect scroll direction and invert if needed.
+	// NOTE: this ignores the scroll_reverse_y setting which incorrectly detects MacOS natural scrolling.
+	if (this.detect_mouse_scroll_direction(e, window) === "up" && py > 0) {
 		py = -py;
 	}
 	

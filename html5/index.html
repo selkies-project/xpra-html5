@@ -718,6 +718,18 @@
 				}
 
 				// attach a callback for when client closes
+				/*
+				  Selkies Patch: defer all settings to default-settings.txt
+				                 on disconnect, just redirect.
+				*/
+				client.callback_close = function(reason) {
+					const has_session_storage = Utilities.hasSessionStorage();
+					if (has_session_storage) {
+						sessionStorage.clear();
+					}
+					window.location="connect.html";
+				}
+				/*
 				const debug_main = getboolparam("debug_main", false);
 				if(!debug_main) {
 					client.callback_close = function(reason) {
@@ -804,6 +816,7 @@
 						}
 					}
 				}
+				*/
 				client.init(ignore_audio_blacklist);
 
 				client.host = server;

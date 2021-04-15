@@ -220,6 +220,26 @@
 		</div>
 
 		<script>
+			// Receive messages from service worker.
+			navigator.serviceWorker.addEventListener('message', event => {
+				console.log("Message from service worker: ", event.data.msg);
+				if (event.data.msg === "reload") {
+					setTimeout(() => {
+						// Unregister service worker then force reload.
+						navigator.serviceWorker.getRegistration().then( (reg) => {
+							if (reg) {
+								reg.unregister().then( () => window.location.reload(true));
+							} else {
+								window.location.reload(true);
+							}
+							})
+							.catch( (err) => {
+								window.location.reload(true);
+							})
+					}, 400);
+				}
+			});
+			
 			const default_settings = {};
 			const getparam = function(prop) {
 				let v = Utilities.getparam(prop);

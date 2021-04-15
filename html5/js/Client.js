@@ -1784,16 +1784,23 @@ XpraClient.prototype.toggle_window_preview = function(init_cb) {
 
 	preview_element.on("afterChange", function(event, slick, currentSlide) {
 		const wid = $(".slick-current .window-preview-item-container").data('wid');
-		client._window_set_focus(client.id_to_window[wid]);
+		if (!client.id_to_window[wid].minimized)
+			client._window_set_focus(client.id_to_window[wid]);
 	});
 
 	$(window).on('click', this._handle_window_list_blur);
 	$(window).on('contextmenu', this._handle_window_list_blur);
 
-	// Clear the list.
-	preview_element.children().remove();
-
 	if (preview_element.is(":visible")) {
+		// Restore the current selection if it's minimized.
+		const wid = $(".slick-current .window-preview-item-container").data('wid');
+		console.log("current wid: " + wid);
+		if (client.id_to_window[wid].minimized)
+			client._window_set_focus(client.id_to_window[wid]);
+
+		// Clear the list of window elements.
+		preview_element.children().remove();
+
 		preview_element.slick('unslick');
 		preview_element.children().remove();
 		preview_element.hide();
@@ -1804,12 +1811,13 @@ XpraClient.prototype.toggle_window_preview = function(init_cb) {
 		return;
 	}
 
+	// Clear the list of window elements.
+	preview_element.children().remove();
+
 	// Sort windows by stacking order.;
 	var windows_sorted = Object.values(client.id_to_window).filter( (win) => {
 		// skip DESKTOP type windows.
 		if (client.is_window_desktop(win)) return false;
-		// skip minimized windows.
-		if (win.minimized) return false;
 		return true;
 	});
 

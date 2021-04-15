@@ -149,7 +149,7 @@ function XpraWindow(client, canvas_state, wid, x, y, w, h, metadata, override_re
 			me.handle_moved(ui);
 		});
 		// attach resize handles
-		jQuery(this.div).resizable({ helper: "ui-resizable-helper", "handles": "n, e, s, w, ne, se, sw, nw" });
+		jQuery(this.div).resizable({ containment: 'parent', helper: "ui-resizable-helper", "handles": "n, e, s, w, ne, se, sw, nw" });
 		//jQuery(this.div).on("resize",jQuery.debounce(50, function(ev,ui) {
 		//  	me.handle_resized(ui);
 		//}));

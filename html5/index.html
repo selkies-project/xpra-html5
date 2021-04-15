@@ -99,8 +99,61 @@
 		</div>
 
 		<div id="screen" style="width: 100%; height:100%;">
+			<div id="float_menu_new" class="float-menu-new">
+				<ul id="float_menu_window_list"></ul>
+				<ul id="float_menu_actions" class="Menu -horizontal">
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" class="window-list-button" onclick="client.toggle_window_preview()" title="Show Open Windows" data-icon="filter"></a>
+					</li>
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" class="fullscreen-button" title="Fullscreen" data-icon="fullscreen"></a>
+					</li>
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" class="keyboard-button" title="Keyboard" data-icon="keyboard"></a>
+					</li>
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" title="Xpra" class="noDrag" data-icon="menu"></a>
+						<ul id="menu_list">
+							<li class="-noChevron">
+								<a href="#" data-icon="web_asset" onclick="swap_menu_trays()">Switch to Floating Menu</a>
+							</li>
+							<li>
+								<a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a>
+							</li>
+							<li>
+								<a href="#" data-icon="refresh" onclick="location.reload()">Reload</a>
+							</li>
+							<li class="-noChevron">
+								<a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+
 			<div id="float_menu">
 				<ul class="Menu -horizontal">
+					<!-- WIP apps button
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" id="application_button" onclick="apps_button_click()" title="Applications" data-icon="apps"></a>
+					</li>
+				    -->
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" title="Open Windows" data-icon="filter"></a>
+						<ul id="open_windows_list">
+						</ul>
+					</li>
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" class="fullscreen-button" title="Fullscreen" data-icon="fullscreen"></a>
+					</li>
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" class="keyboard-button" title="Keyboard" data-icon="keyboard"></a>
+					</li>
+					<!--
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" id="sound_button" title="Audio" data-icon="volume_off"></a>
+					</li>
+					-->
 					<li class="-hasSubmenu -noChevron">
 						<a href="#" title="Xpra" class="noDrag" data-icon="menu"></a>
 						<ul id="menu_list">
@@ -127,24 +180,12 @@
 								</ul>
 							</li>
 							-->
+							<li><a href="#" data-icon="web_asset" onclick="swap_menu_trays()">Switch to Window Tray</a></li>
+							<li><a href="#" data-icon="visibility_off" id="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a></li>
 							<li><a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a></li>
 							<li><a href="#" data-icon="refresh" onclick="location.reload()">Reload</a></li>
 							<li><a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a></li>
 						</ul>
-					</li>
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" title="Open Windows" data-icon="filter"></a>
-						<ul id="open_windows_list">
-						</ul>
-					</li>
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" id="fullscreen_button" title="Fullscreen" data-icon="fullscreen"></a>
-					</li>
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" id="keyboard_button" title="Keyboard" data-icon="keyboard"></a>
-					</li>
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" id="sound_button" title="Audio" data-icon="volume_off"></a>
 					</li>
 				</ul>
 				<div id="float_tray" class="menu-divright"></div>
@@ -247,16 +288,47 @@
 		</div>
 
 		<script>
+			// Receive messages from service worker.
+			navigator.serviceWorker.addEventListener('message', event => {
+				console.log("Message from service worker: ", event.data.msg);
+				if (event.data.msg === "reload") {
+					setTimeout(() => {
+						// Unregister service worker then force reload.
+						navigator.serviceWorker.getRegistration().then( (reg) => {
+							if (reg) {
+								reg.unregister().then( () => window.location.reload(true));
+							} else {
+								window.location.reload(true);
+							}
+							})
+							.catch( (err) => {
+								window.location.reload(true);
+							})
+					}, 400);
+				}
+			});
+			
 			const default_settings = {};
-			const getparam = function(prop) {
-				let v = Utilities.getparam(prop);
+			const setparam = function(prop, value, persist) {
+				default_settings[prop] = value;
+				if (persist === true) {
+					const has_local_stoarge = Utilities.hasLocalStorage();
+					if (has_local_stoarge) {
+						var prefix = window.location.pathname.endsWith("/") && (window.location.pathname.split("/")[1]) || "xpra";
+						var key = prefix + "_" + prop;
+						localStorage.setItem(key, value);
+					}
+				}
+			}
+			const getparam = function(prop, withprefix) {
+				let v = Utilities.getparam(prop, withprefix);
 				if (v==null && prop in default_settings) {
 					v = default_settings[prop];
 				}
 				return v;
 			};
-			const getboolparam = function(prop, default_value) {
-				let v = Utilities.getparam(prop);
+			const getboolparam = function(prop, default_value, withprefix) {
+				let v = Utilities.getparam(prop, withprefix);
 				if (v==null && prop in default_settings) {
 					v = default_settings[prop];
 				}
@@ -1097,20 +1169,20 @@
 				const keyboard = getboolparam("keyboard", Utilities.isMobile());
 				if (!keyboard) {
 					$('.simple-keyboard').hide();
-					$('#keyboard_button').css('color', '#777');
+					$('.keyboard-button').css('color', '#777');
 				}
 				else {
 					$('.simple-keyboard').show();
-					$('#keyboard_button').css('color', '#111');
+					$('.keyboard-button').css('color', '#111');
 				}
 			}
 			function toggle_keyboard() {
 				$('.simple-keyboard').toggle();
 				if ($('.simple-keyboard').is(":visible")) {
-					$('#keyboard_button').css('color', '#111');
+					$('.keyboard-button').css('color', '#111');
 				}
 				else {
-					$('#keyboard_button').css('color', '#777');
+					$('.keyboard-button').css('color', '#777');
 				}
 			}
 
@@ -1242,7 +1314,7 @@
 			function toggle_fullscreen() {
 				const f_el = document.hasOwnProperty("requestFullScreen") || document.hasOwnProperty("webkitRequestFullScreen") || document.hasOwnProperty("mozRequestFullScreen") || document.hasOwnProperty("msRequestFullscreen");
 				if (!f_el) {
-					const elem = document.getElementById("fullscreen_button");
+					const elem = document.getElementsByClassName("fullscreen-button")[0];
 					var is_fullscreen = document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen;
 					if (!is_fullscreen) {
 						const req = elem.requestFullScreen || elem.webkitRequestFullScreen || elem.mozRequestFullScreen || elem.msRequestFullscreen;
@@ -1272,7 +1344,7 @@
 
 							$('#fullscreen').attr('src', './icons/unfullscreen.png');
 							elem.title = "Exit Fullscreen";
-							$('#fullscreen_button').attr('data-icon', 'fullscreen_exit');
+							$('.fullscreen-button').attr('data-icon', 'fullscreen_exit');
 						}
 					} else {
 						if (document.exitFullscreen) {
@@ -1287,13 +1359,16 @@
 
 						$('#fullscreen').attr('src', './icons/fullscreen.png');
 						elem.title = "Fullscreen";
-						$('#fullscreen_button').attr('data-icon', 'fullscreen');
+						$('.fullscreen-button').attr('data-icon', 'fullscreen');
 					}
 				}
 			}
 
 			function expand_float_menu(){
-				const expanded_width = (float_menu_item_size*5);
+				if (getboolparam("window_tray", false, true)) return;
+				var num_menu_items = 4;
+				if ($('#application_button').is(":visible")) num_menu_items++;
+				const expanded_width = (float_menu_item_size*num_menu_items);
 				const float_menu = document.getElementById('float_menu');
 				float_menu.style.display = "inline-block";
 				float_menu.style.width = expanded_width +'px';
@@ -1305,32 +1380,6 @@
 			
 			function retract_float_menu(){
 				document.getElementById('float_menu').style.width ='0px'; $('#float_menu').children().hide();
-			}
-
-			function init_float_menu() {
-				const toolbar_position = getparam("toolbar_position");
-				const floating_menu = getboolparam("floating_menu", true);
-				const autohide = getboolparam("autohide", false);
-				const float_menu_element = $('#float_menu');
-				if (!floating_menu) {
-					//nothing to do, it starts hidden
-					return;
-				}
-				float_menu_element.fadeIn();
-				if(client){
-					client.toolbar_position = toolbar_position;
-				}
-				if (autohide) {
-					float_menu_element.on('mouseover', expand_float_menu);
-					float_menu_element.on('mouseout', retract_float_menu);
-					// Expand and retract the floating menu so it
-					// is correctly positioned and collapsed
-					expand_float_menu();
-					retract_float_menu();
-				}
-				else {
-					expand_float_menu();
-				}
 			}
 
 			let client;
@@ -1389,24 +1438,6 @@
 					}
 				});
 				client.password_prompt_fn = password_prompt_fn;
-				$('#fullscreen').on('click', function (e) {
-					toggle_fullscreen();
-				});
-
-				$('#fullscreen_button').on('click', function (e) {
-					toggle_fullscreen();
-				});
-
-				$('#keyboard_button').on('click', function (e) {
-					toggle_keyboard();
-				});
-
-				// Configure Xpra tray window list right click behavior.
-				$("#open_windows_list").siblings("a").on('mousedown', (e) => {
-					if (e.buttons === 2) {
-						client.toggle_window_preview();
-					}
-				});
 
 				const screen_change_events = "webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange";
 				$(document).on(screen_change_events, function () {
@@ -1414,7 +1445,7 @@
 					clog("fullscreenchange:", f_el);
 					if (f_el == null) {
 						//we're not in fullscreen mode now, so show fullscreen icon again:
-						$('#fullscreen_button').attr('data-icon', 'fullscreen');
+						$('.fullscreen-button').attr('data-icon', 'fullscreen');
 					}
 				});
 				// disable right click menu:

@@ -1660,10 +1660,17 @@ XpraClient.prototype._window_set_focus = function(win) {
 	}
 
 	// Keep DESKTOP type windows per default setttings lower than all other windows.
+	// Only allow focus if all other windows are minimized.
 	if (default_settings !== undefined && default_settings.auto_fullscreen_desktop_class !== undefined && default_settings.auto_fullscreen_desktop_class.length > 0) {
 		var auto_fullscreen_desktop_class = default_settings.auto_fullscreen_desktop_class;
         if (win.windowtype == "DESKTOP" && win.metadata['class-instance'].includes(auto_fullscreen_desktop_class)) {
-            return;
+			var any_visible = false;
+			for (let i in client.id_to_window) {
+				const iwin = client.id_to_window[i];
+				if (iwin.wid == win.wid) continue;
+				any_visible ||= !iwin.minimized;
+			}
+            if (any_visible) return;
         }
     }
 

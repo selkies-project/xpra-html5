@@ -319,12 +319,14 @@ const FILE_TRANSLATION = {"server" : "host"};
 function add_prop(prop, value, first) {
 	if (Utilities.hasSessionStorage()) {
 		//we're using sessionStorage, no need for URL
+		/*
 		if (value===null || value==="undefined") {
 			sessionStorage.removeItem(prop);
 		}
 		else {
 			sessionStorage.setItem(prop, value);
 		}
+		*/
 		return "";
 	}
 	if (value===null || value==="undefined") {

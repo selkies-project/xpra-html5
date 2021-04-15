@@ -120,6 +120,7 @@ XpraClient.prototype.init_state = function(container) {
 	this.browser_language_change_embargo_time = 0;
 	this.key_layout = null;
 	this.last_keycode_pressed = 0;
+	this.last_key_packet = [];
 	// mouse
 	this.last_button_event = [-1, false, -1, -1];
 	this.mousedown_event = null;
@@ -543,6 +544,9 @@ XpraClient.prototype._screen_resized = function(event, ctx) {
 		const iwin = ctx.id_to_window[i];
 		iwin.screen_resized();
 	}
+
+	// Reposition float menu
+	init_float_menu();
 };
 
 /**
@@ -923,7 +927,9 @@ XpraClient.prototype.do_keyb_process = function(pressed, event) {
 		const me = this;
 		setTimeout(function () {
 			while (me.key_packets.length>0) {
-				me.send(me.key_packets.shift());
+				var key_packet = me.key_packets.shift();
+				me.last_key_packet = key_packet;
+				me.send(key_packet);
 			}
 		}, delay);
 	}
@@ -1692,6 +1698,19 @@ XpraClient.prototype.is_window_desktop = function(win) {
         }
     }
 	return false;
+}
+
+/*
+ * Return the first DESKTOP type window or null if none found.
+ */
+XpraClient.prototype.get_desktop_window = function() {
+	for (const i in client.id_to_window) {
+		let iwin = client.id_to_window[i];
+		if (this.is_window_desktop(iwin)) {
+			return iwin;
+		}
+	}
+	return null;
 }
 
 /*
@@ -2506,6 +2525,10 @@ XpraClient.prototype._new_window = function(wid, x, y, w, h, metadata, override_
 		const geom = win.get_internal_geometry();
 		this.send(["map-window", wid, geom.x, geom.y, geom.w, geom.h, win.client_properties]);
 		this._window_set_focus(win);
+	}
+
+	if (this.is_window_desktop(win)) {
+		update_apps_button();
 	}
 };
 

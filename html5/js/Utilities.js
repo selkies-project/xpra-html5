@@ -543,7 +543,7 @@ const Utilities = {
 		return params;
 	},
 
-	getparam : function(prop) {
+	getparam : function(prop, withprefix) {
 		let getParameter = window.location.getParameter;
 		if (!getParameter) {
 			getParameter = function(key) {
@@ -554,8 +554,16 @@ const Utilities = {
 		}
 		let value = getParameter(prop);
 		try {
-			if (value === undefined && typeof(sessionStorage) !== undefined) {
-				value = sessionStorage.getItem(prop);
+			if (value === undefined && typeof(localStorage) !== undefined) {
+				var key = prop;
+				if (withprefix === true) {
+					var prefix = location.pathname.replaceAll("/","");
+					if (prefix === "index.html") {
+						prefix = "";
+					}
+					key = prefix + "_" + prop;
+				}
+				value = localStorage.getItem(key);
 			}
 		}
 		catch (e) {
@@ -581,6 +589,21 @@ const Utilities = {
 			const key = "just for testing sessionStorage support";
 		    sessionStorage.setItem(key, "store-whatever");
 		    sessionStorage.removeItem(key);
+		    return true;
+		}
+		catch (e) {
+			return false;
+		}
+	},
+
+	hasLocalStorage : function() {
+		if (typeof(Storage) === "undefined") {
+			return false;
+		}
+		try {
+			const key = "just for testing localStorage support";
+		    localStorage.setItem(key, "store-whatever");
+		    localStorage.removeItem(key);
 		    return true;
 		}
 		catch (e) {

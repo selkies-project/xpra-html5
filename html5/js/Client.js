@@ -1775,6 +1775,9 @@ XpraClient.prototype.get_desktop_window = function() {
 	return null;
 }
 
+/*
+ * Show/Hide the window preview list
+ */
 XpraClient.prototype.toggle_window_preview = function(init_cb) {
 	const preview_element = $('#window_preview');
 
@@ -1787,6 +1790,9 @@ XpraClient.prototype.toggle_window_preview = function(init_cb) {
 		if (!client.id_to_window[wid].minimized)
 			client._window_set_focus(client.id_to_window[wid]);
 	});
+
+	$(window).on('click', this._handle_window_list_blur);
+	$(window).on('contextmenu', this._handle_window_list_blur);
 
 	if (preview_element.is(":visible")) {
 		// Restore the current selection if it's minimized.
@@ -1803,6 +1809,8 @@ XpraClient.prototype.toggle_window_preview = function(init_cb) {
 		preview_element.hide();
 		preview_element.off("afterChange");
 		preview_element.off("init");
+		$(window).off('click', this._handle_window_list_blur);
+		$(window).off('contextmenu', this._handle_window_list_blur);
 		return;
 	}
 
@@ -1869,6 +1877,20 @@ XpraClient.prototype.toggle_window_preview = function(init_cb) {
 		easing: 'null',
 		waitForAnimate: false,
 	});
+}
+
+/*
+ * Handle closing of window list if clickout outside of area.
+ */
+XpraClient.prototype._handle_window_list_blur = function(e) {
+	if ($('#window_preview').is(":visible")) {
+		if (e.target.id === "window_preview") return;
+		if ($(e.target).parents("#window_preview").length > 0) return;
+		if ($(e.target).hasClass("window-list-button")) return;
+		if ($(e.target).parents("#float_menu").length > 0 && $(e.target).parent().has("#open_windows_list")) return;
+		// Clicked outside window list, close it.
+		client.toggle_window_preview();
+	}
 }
 
 /*

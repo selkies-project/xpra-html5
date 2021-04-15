@@ -1595,10 +1595,17 @@ XpraClient.prototype._window_set_focus = function(win) {
 	}
 
 	// Keep DESKTOP type windows per default setttings lower than all other windows.
+	// Only allow focus if all other windows are minimized.
 	if (default_settings !== undefined && default_settings.auto_fullscreen_desktop_class !== undefined && default_settings.auto_fullscreen_desktop_class.length > 0) {
 		var auto_fullscreen_desktop_class = default_settings.auto_fullscreen_desktop_class;
         if (win.windowtype == "DESKTOP" && win.metadata['class-instance'].includes(auto_fullscreen_desktop_class)) {
-            return;
+			var any_visible = false;
+			for (let i in client.id_to_window) {
+				const iwin = client.id_to_window[i];
+				if (iwin.wid == win.wid) continue;
+				any_visible ||= !iwin.minimized;
+			}
+            if (any_visible) return;
         }
     }
 
@@ -1644,6 +1651,24 @@ XpraClient.prototype.is_window_desktop = function(win) {
         }
     }
 	return false;
+}
+
+/*
+ * Focus next visible (non-minimized) window.
+ */
+XpraClient.prototype._focus_next_window = function() {
+	let highest_window = null;
+	let highest_stacking = -1;
+	for (const i in client.id_to_window) {
+		let iwin = client.id_to_window[i];
+		if (iwin.stacking_layer>highest_stacking && !iwin.tray && !iwin.minimized) {
+			highest_window = iwin;
+			highest_stacking = iwin.stacking_layer;
+		}
+	}
+	if (highest_window) {
+		client._window_set_focus(highest_window);
+	}
 }
 
 /*
@@ -2510,7 +2535,7 @@ XpraClient.prototype._process_lost_window = function(packet, ctx) {
 		let highest_stacking = -1;
 		for (const i in client.id_to_window) {
 			let iwin = client.id_to_window[i];
-			if (iwin.stacking_layer>highest_stacking && !iwin.tray) {
+			if (iwin.stacking_layer>highest_stacking && !iwin.tray && !iwin.minimized) {
 				highest_window = iwin;
 				highest_stacking = iwin.stacking_layer;
 			}

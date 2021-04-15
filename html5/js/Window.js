@@ -202,9 +202,13 @@ function XpraWindow(client, canvas_state, wid, x, y, w, h, metadata, override_re
 		//jQuery(this.div).mouseup(function (e) {
 		//	e.stopPropagation();
 		//});
-		// assign some interesting callbacks
-		jQuery(this.d_header).click(function() {
-			me.client._window_set_focus(me);
+		// assign callback to focus window if header is clicked.
+		jQuery(this.d_header).click(function(e) {
+			if ($(e.target).parents('.windowbuttons').length > 0) {
+				return;
+			} else {
+				me.client._window_set_focus(me);
+			}
 		});
 	}
 
@@ -690,16 +694,21 @@ XpraWindow.prototype.set_minimized = function(minimized) {
 /**
  * Toggle minimized state
  */
-XpraWindow.prototype.toggle_minimized = function() {
+ XpraWindow.prototype.toggle_minimized = function() {
 	if (!this.minimized) {
 		this.client.send(["unmap-window", this.wid, true]);
-		return;
-	}
-	else {
+	} else {
 		const geom = this.get_internal_geometry();
 		this.client.send(["map-window", this.wid, geom.x, geom.y, geom.w, geom.h, this.client_properties]);
 	}
 	this.set_minimized(!this.minimized);
+	if (!this.minimized) {
+		this.client._window_set_focus(this);
+	} else {
+		setTimeout(() => {
+			this.client._focus_next_window();
+		}, 200);
+	}
 };
 
 /**

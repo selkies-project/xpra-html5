@@ -37,12 +37,15 @@ function addWindowListItem(wid, title){
 			client._window_set_focus(client.id_to_window[wid]);
 		}
 	};
-	a.onclick=function(){
-		if(jQuery(client.id_to_window[wid].div).is(":hidden")){
-			jQuery(client.id_to_window[wid].div).show();
+	a.onclick=function(e){
+		// Skip handling minimize, maximize, close events.
+		if ($(e.target).hasClass("menu-content-right")) return;
+		if (client.id_to_window[wid].minimized) {
+			client.id_to_window[wid].toggle_minimized();
+		} else {
+			client._window_set_focus(client.id_to_window[wid]);
 		}
 		this.parentElement.parentElement.className="-hide";
-		client._window_set_focus(client.id_to_window[wid]);
 	};
 
 	const divLeft = document.createElement("div");
@@ -79,7 +82,7 @@ function addWindowListItem(wid, title){
 	img4.id = "windowlistitemmin"+wid;
 	img4.src="icons/minimize.png";
 	img4.title="Minimize";
-	img4.onclick=function(){ client.id_to_window[wid].toggle_minimized(); };
+	img4.onclick=function(){client.id_to_window[wid].toggle_minimized(); };
 	img4.className="menu-content-right";
 
 	divRight.appendChild(img2);

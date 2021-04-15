@@ -396,13 +396,15 @@ XpraWindow.prototype.updateCSSGeometry = function() {
 };
 
 XpraWindow.prototype.updateFocus = function() {
+	var windowListItem = $("#windowlistitem"+this.wid);
 	if(this.focused) {
 		// set focused style to div
 		jQuery(this.div).addClass("windowinfocus");
-
+		windowListItem.addClass("windowlist-infocus");
 	} else {
 		// set not in focus style
 		jQuery(this.div).removeClass("windowinfocus");
+		windowListItem.removeClass("windowlist-infocus");
 	}
 };
 
@@ -505,7 +507,11 @@ XpraWindow.prototype.set_metadata_safe = function(metadata) {
 		console.log("title=", this.title, typeof this.title, this.title.constructor)
 		jQuery('#title' + this.wid).html(this.title);
 		const trimmedTitle = Utilities.trimString(this.title, 30);
-		jQuery('#windowlistitemtitle'+this.wid).text(trimmedTitle);
+		if (getboolparam("window_tray", false, true)) {
+			jQuery('#windowlistitemtitle'+this.wid+' .windowlistitem-title').text(trimmedTitle);
+		} else {
+			jQuery('#windowlistitemtitle'+this.wid).text(trimmedTitle);
+		}
 	}
 	if ("has-alpha" in metadata) {
 		this.has_alpha = metadata["has-alpha"];
@@ -708,11 +714,14 @@ XpraWindow.prototype.set_minimized = function(minimized) {
 		return;
 	}
 	this.minimized = minimized;
+	var windowListItem = $("#windowlistitem"+this.wid);
 	if (minimized) {
 		jQuery(this.div).hide(200);
+		windowListItem.addClass("windowlist-minimized");
 	}
 	else {
 		jQuery(this.div).show(200);
+		windowListItem.removeClass("windowlist-minimized");
 	}
 };
 

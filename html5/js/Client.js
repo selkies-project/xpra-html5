@@ -599,7 +599,7 @@ XpraClient.prototype._screen_resized = function(event, ctx) {
 		iwin.screen_resized();
 	}
 	// Re-position floating toolbar menu
-	this.position_float_menu();
+	init_float_menu();
 };
 
 /**
@@ -1781,6 +1781,19 @@ XpraClient.prototype.is_window_desktop = function(win) {
 }
 
 /*
+ * Return the first DESKTOP type window or null if none found.
+ */
+XpraClient.prototype.get_desktop_window = function() {
+	for (const i in client.id_to_window) {
+		let iwin = client.id_to_window[i];
+		if (this.is_window_desktop(iwin)) {
+			return iwin;
+		}
+	}
+	return null;
+}
+
+/*
  * Show/Hide the window preview list
  */
 XpraClient.prototype.toggle_window_preview = function(init_cb) {
@@ -2718,6 +2731,10 @@ XpraClient.prototype._new_window = function(wid, x, y, w, h, metadata, override_
 		const geom = win.get_internal_geometry();
 		this.send(["map-window", wid, geom.x, geom.y, geom.w, geom.h, win.client_properties]);
 		this._window_set_focus(win);
+	}
+
+	if (this.is_window_desktop(win)) {
+		update_apps_button();
 	}
 };
 

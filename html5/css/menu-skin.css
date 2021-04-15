@@ -42,9 +42,45 @@ SOFTWARE.
 	box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.5);
 }
 
+#float_menu_old {
+    display: none;
+}
+
+.float-menu-new {
+    display: none;
+    width: 50%;
+    padding: 0px 0px 0px 0px !important;
+    background: grey !important;
+    background-color: #777 !important;
+    border-radius: 4px;
+}
+
+#float_menu_actions {
+    float: right;
+    border-radius: 4px;
+}
+
+#float_menu_window_list {
+    float: left;
+    display: inline-flex;
+    flex-shrink: 2;
+    max-width: 86%;
+    max-height: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+
 .menu-divleft {
     float:left;
     clear:left;
+}
+
+.menu-divleft-new {
+    float:left;
+    clear:left;
+    width: 100%;
+    display: flex;
+    flex-shrink: 2;
 }
 
 .menu-divright {
@@ -57,6 +93,17 @@ SOFTWARE.
     float: left;
     width: 24px;
     height: 24px;
+    padding: 3px 2px;
+    vertical-align:middle;
+    text-decoration: none;
+    display: inline;
+}
+
+.menu-content-left-new {
+    white-space: nowrap;
+    float: left;
+    width: 18px;
+    height: 18px;
     padding: 3px 2px;
     vertical-align:middle;
     text-decoration: none;
@@ -76,6 +123,41 @@ SOFTWARE.
 
 .windowlist-li {
     min-width: 400px;
+}
+
+.windowlist-li-new {
+    width: 240px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    min-width: 1%;
+    display: inline-block;
+    padding: 1px;
+    background-color: #BBB;
+    cursor: default;
+}
+
+.windowlist-minimized {
+    color: #777;
+}
+
+.windowlist-infocus {
+    background-color: #999;
+}
+
+.windowlistitem-title-container {
+    display: inline-flex;
+    flex-grow: 2;
+}
+
+.windowlist-li-new .windowlistitem-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
 }
 
 .Menu {

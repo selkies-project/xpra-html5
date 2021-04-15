@@ -705,7 +705,8 @@ XpraWindow.prototype.set_minimized = function(minimized) {
  */
  XpraWindow.prototype.toggle_minimized = function() {
 	if (!this.minimized) {
-		this.client.send(["unmap-window", this.wid, true]);
+		// TODO: this is breaking focus when restoring windows from minimized state.
+		//this.client.send(["unmap-window", this.wid, true]);
 	} else {
 		const geom = this.get_internal_geometry();
 		this.client.send(["map-window", this.wid, geom.x, geom.y, geom.w, geom.h, this.client_properties]);

@@ -133,6 +133,7 @@
 									<li><a href="#" data-icon="bug_report" onclick="show_bugreport(event); return false">Bug Report</a></li>
 								</ul>
 							</li>
+							<li><a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a></li>
 							<li><a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a></li>
 						</ul>
 					</li>
@@ -187,6 +188,7 @@
 			<h3>Connection Data</h3>
 			<table id='sessiondata'>
 			<caption>Session Connection Data Information</caption>
+			<!--
 			<tr>
 				<th scope="row">Server Endpoint</th>
 				<td id="endpoint"></td>
@@ -195,14 +197,15 @@
 				<th scope="row">Server Display</th>
 				<td id="server_display"></td>
 			</tr>
-			<!-- <tr>
+			<tr>
 				<th>Server Hostname</th>
 				<td id="server_hostname"></td>
-			</tr> -->
+			</tr>
 			<tr>
 				<th scope="row">Server Platform</th>
 				<td id="server_platform"></td>
 			</tr>
+			-->
 			<tr>
 				<th scope="row">Server Load</th>
 				<td id="server_load"></td>

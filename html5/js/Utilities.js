@@ -556,7 +556,19 @@ const Utilities = {
 				return window.location.queryStringParams[key];
 			};
 		}
-		let value = getParameter(prop);
+		let value = null;
+		//with file URLs, we can't use the query string,
+		//use the hash value instead:
+		if (window.location.href.startsWith("file://") && window.location.hash) {
+			if (!window.location.hashStringParams)
+				window.location.hashStringParams = Utilities.parseParams(window.location.hash.substring(1));
+			value = window.location.hashStringParams[prop];
+			Utilities.log("hash("+prop+")="+value);
+			if (value !== undefined) {
+				return value;
+			}
+		}
+		value = getParameter(prop);
 		try {
 			if (value === undefined && typeof(sessionStorage) !== undefined) {
 				value = sessionStorage.getItem(prop);

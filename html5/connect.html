@@ -526,7 +526,7 @@ function fill_form(default_settings) {
 	if(https){
 		protocol_port=443;
 	}
-	document.getElementById("server").value = getparam("server") || link.hostname;
+	document.getElementById("server").value = getparam("server") || getparam("host") || link.hostname;
 	document.getElementById("port").value = getparam("port") || link.port || protocol_port;
 	document.getElementById("path").value = path || pathname;
 	document.getElementById("username").value = getparam("username") || "";

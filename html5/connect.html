@@ -611,14 +611,14 @@ function fill_form(default_settings) {
 		const server = document.getElementById("server").value
 		if (!server) {
 			//nothing we can do
-			error_fn("no server address")
+			Utilities.log("no server address")
 			return;
 		}
 		url += server;
 		const port = document.getElementById("port").value;
 		const iport = parseInt(port) || 0;
 		if (port && !iport) {
-			error_fn("invalid port number '"+port+"'");
+			Utilities.log("invalid port number '"+port+"'");
 			return;
 		}
 		if (iport) {

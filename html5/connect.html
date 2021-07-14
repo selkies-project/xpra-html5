@@ -635,8 +635,16 @@ function fill_form(default_settings) {
 	}
 
 	function json_action(uri, success_fn, error_fn) {
-		const url = get_host_address()+uri;
-		Utilities.json_action(url, success_fn, error_fn);
+		if (window.location.href.startsWith("file://")) {
+			if (error_fn==undefined) {
+				error_fn = Utilities.log;
+			}
+			error_fn("cannot use json action with file URLs");
+		}
+		else {
+			const url = get_host_address()+uri;
+			Utilities.json_action(url, success_fn, error_fn);
+		}
 	}
 
 	const command_category_icon = document.getElementById("command_category_icon");
@@ -1126,6 +1134,10 @@ function fill_form(default_settings) {
 }
 
 $(document).ready(function() {
+	if (window.location.href.startsWith("file://")) {
+		fill_form({});
+		return;
+	}
 	const xhr = new XMLHttpRequest();
 	xhr.open("GET", "./default-settings.txt");
 	xhr.onload = function() {

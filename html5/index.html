@@ -99,6 +99,9 @@
 							<li>
 								<a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a>
 							</li>
+							<li>
+								<a href="#" data-icon="refresh" onclick="location.reload()">Reload</a>
+							</li>
 							<li class="-noChevron">
 								<a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a>
 							</li>
@@ -159,6 +162,7 @@
 							<li><a href="#" data-icon="web_asset" onclick="swap_menu_trays()">Switch to Window Tray</a></li>
 							<li><a href="#" data-icon="visibility_off" id="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a></li>
 							<li><a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a></li>
+							<li><a href="#" data-icon="refresh" onclick="location.reload()">Reload</a></li>
 							<li><a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a></li>
 						</ul>
 					</li>

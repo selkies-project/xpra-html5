@@ -1011,6 +1011,9 @@ XpraClient.prototype._get_desktop_size = function() {
 };
 
 XpraClient.prototype._get_DPI = function() {
+	if (window.devicePixelRatio !== undefined) {
+		return 96 * devicePixelRatio;
+	}
 	"use strict";
 	const dpi_div = document.getElementById("dpi");
 	if (dpi_div != undefined) {

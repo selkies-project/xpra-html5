@@ -686,6 +686,7 @@
 				const toolbar_position = getparam("toolbar_position");
 				const autohide = getboolparam("autohide", false);
 				const override_width = getfloatparam("override_width", window.innerWidth);
+				const device_dpi_scaling = (default_settings["device_dpi_scaling"] || "false").toLowerCase() === "true";
 				vrefresh = getintparam("vrefresh", -1);
 				if (vrefresh<0 && fps>=30) {
 					vrefresh = fps;
@@ -704,9 +705,13 @@
 					//ignore
 				}
 
-				var scale = 1 * devicePixelRatio;
-				if (window.innerWidth!==override_width) {
-					scale = override_width/window.innerWidth;
+				var scale = 1;
+				if (device_dpi_scaling === true) {
+					scale = 1 * devicePixelRatio;
+				} else {
+					if (window.innerWidth!==override_width) {
+						scale = override_width/window.innerWidth;
+					}
 				}
 
 				let progress_timer;

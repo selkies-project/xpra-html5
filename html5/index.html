@@ -1463,13 +1463,20 @@
 				});
 				// disable right click menu:
 				window.oncontextmenu = function(e) {
-					if (client.clipboard_enabled) {
+					if (client.clipboard_enabled && client.clipboard_direction !== "to-server") {
 						client._poll_clipboard(e);
 					}
 					e.preventDefault();
 					e.stopPropagation();
 					return false;
 				}
+
+				// Send clipboard from browser on focus if clipboard direction is one-way.
+				$(window).on("focus", (e) => {
+					if (client.clipboard_enabled && client.clipboard_direction === "to-server") {
+						client._poll_clipboard(e);
+					}
+				});
 			}
 
 			$(document).ready(function() {

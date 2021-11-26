@@ -68,6 +68,8 @@
 		<link rel="stylesheet" type="text/css" href="css/menu-skin.css"/>
 		<link rel="stylesheet" type="text/css" href="css/icon.css"/>
 
+		<link rel="stylesheet" type="text/css" href="css/flag-icons.css"/>
+
 		<!-- slick carousel for window preview feature -->
 		<link rel="stylesheet" type="text/css" href="css/slick.css"/>
 		<script type="text/javascript" src="js/lib/slick.js"></script>
@@ -109,13 +111,40 @@
 				<ul id="float_menu_window_list"></ul>
 				<ul id="float_menu_actions" class="Menu -horizontal">
 					<li class="-hasSubmenu -noChevron">
-						<a href="#" class="window-list-button" onclick="client.toggle_window_preview()" title="Show Open Windows" data-icon="filter"></a>
+						<a href="#" class="noDrag window-list-button" onclick="client.toggle_window_preview()" title="Show Open Windows" data-icon="filter"></a>
 					</li>
 					<li class="-hasSubmenu -noChevron">
-						<a href="#" class="fullscreen-button" title="Fullscreen" data-icon="fullscreen"></a>
+						<a href="#" class="noDrag fullscreen-button" title="Fullscreen" data-icon="fullscreen"></a>
 					</li>
 					<li class="-hasSubmenu -noChevron">
-						<a href="#" class="keyboard-button" title="Keyboard" data-icon="keyboard"></a>
+						<a href="#" class="noDrag keyboard-button" title="Keyboard" data-icon="keyboard"></a>
+					</li>
+					<li class="-hasSubmenu -noChevron keyboard-layout-buttons" style="display: none">
+						<!-- TODO set flag-icon per current client.key_layout -->
+						<a href="#" id="current-keyboard-layout" class="noDrag flag-icon flag-icon-us" title="Keyboard Layout"></a>
+						<ul id="menu_list">
+							<li class="-noChevron">
+								<a href="#" id="keyboard-layout-us" data-flag="us" data-keyboard="us" class="flag-icon flag-icon-us">English USA</a>
+							</li>
+							<li class="-noChevron">
+								<a href="#" id="keyboard-layout-gb" data-flag="gb" data-keyboard="gb" class="flag-icon flag-icon-gb">United Kingdom</a>
+							</li>
+							<li class="-noChevron">
+								<a href="#" id="keyboard-layout-fr" data-flag="fr" data-keyboard="fr" class="flag-icon flag-icon-fr">France</a>
+							</li>
+							<li class="-noChevron">
+								<a href="#" id="keyboard-layout-de" data-flag="de" data-keyboard="de" class="flag-icon flag-icon-de">Germany</a>
+							</li>
+							<li class="-noChevron">
+								<a href="#" id="keyboard-layout-es" data-flag="es" data-keyboard="es" class="flag-icon flag-icon-es">Spain</a>
+							</li>
+							<li class="-noChevron">
+								<a href="#" id="keyboard-layout-br-abnt2" data-flag="br" data-keyboard="pt" class="flag-icon flag-icon-br">Brazil ABNT2</a>
+							</li>
+						</ul>
+					</li>
+					<li class="-hasSubmenu -noChevron">
+						<a href="#" id="sound_button" title="Audio" data-icon="volume_off"></a>
 					</li>
 					<li class="-hasSubmenu -noChevron">
 						<a href="#" title="Xpra" class="noDrag" data-icon="menu"></a>
@@ -676,7 +705,7 @@
 				const path = getparam("path") || window.location.pathname;
 				const encryption = getparam("encryption") || null;
 				const key = getparam("key") || null;
-				const keyboard_layout = getparam("keyboard_layout") || null;
+				const keyboard_layout = null; // this is set in the init_float_menu function
 				const start = getparam("start");
 				const exit_with_children = getboolparam("exit_with_children", false);
 				const exit_with_client = getboolparam("exit_with_client", false);

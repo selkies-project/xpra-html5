@@ -276,6 +276,19 @@ SOFTWARE.
         background-color: rgba(0,0,0,0.1);
     }
 
+    .Menu .flag-icon:before {
+        line-height: 2em;
+        margin-left: 1em;
+    }
+
+    .Menu .flag-icon {
+        width: 0px;
+    }
+
+    .Menu li > a.flag-icon {
+        margin-left: 0.2em;
+    }
+
 /*
 ** End configurable values
 */

@@ -9,3 +9,6 @@
 /install
 /dist
 /MANIFEST
+
+# external dependencies
+/html5/flags

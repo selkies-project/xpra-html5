@@ -251,6 +251,19 @@ function init_float_menu() {
 				toggle_keyboard();
 			});
 
+			if (getboolparam("keyboard_layout_buttons", false, true) === true) {
+				$('.keyboard-layout-buttons').show();
+
+				// Initialize the layout selection from param
+				set_keyboard_layout(null, getparam("keyboard_layout", true) || "us" );
+				client._check_browser_language();
+
+				// Bind click handlers.
+				$('.keyboard-layout-buttons ul li a').on('click', function (e) {
+					set_keyboard_layout($(e.target));
+				});
+			}
+
 			// Configure Xpra tray window list right click behavior.
 			$([$("#open_windows_list").siblings("a")[0], $(".window-list-button")[0]]).on('mousedown', (e) => {
 				if (e.buttons === 2) {
@@ -262,6 +275,36 @@ function init_float_menu() {
 		// Configure the apps button.
 		update_apps_button();
 	}
+}
+
+function set_keyboard_layout(el, default_layout) {
+	if (default_layout) {
+		el = $("#keyboard-layout-" + default_layout);
+		if (el.length === 0) {
+			client.debug("keyboard", "unsupported default layout: " + default_layout);
+			el = $("#keyboard-layout-us");
+		}
+	}
+	var curr_icon_el = $("#current-keyboard-layout");
+	var curr_flag_icon = $(curr_icon_el).attr("class").match(new RegExp("flag-icon-(.*)$"))[0];
+	var new_flag_icon = null;
+
+	new_flag_icon = curr_flag_icon;
+	if ($(el).data("flag")) {
+		new_flag_icon = "flag-icon-" + $(el).data("flag");
+	}
+
+	curr_icon_el.removeClass(curr_flag_icon);
+	curr_icon_el.addClass(new_flag_icon);
+
+	var el_keyboard = $(el).data("keyboard");
+	if (el_keyboard) {
+		client.keyboard_layout = el_keyboard;
+	}
+	client.debug("keyboard", "setting keyboard_layout=" + client.keyboard_layout);
+
+	// persist keyboard layout for user.
+	setparam("keyboard_layout", $(el).attr("id").replace("keyboard-layout-", ""), true);
 }
 
 function update_apps_button() {

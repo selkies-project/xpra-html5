@@ -129,6 +129,7 @@ XpraClient.prototype.init_state = function() {
 	this.browser_language = Utilities.getFirstBrowserLanguage();
 	this.browser_language_change_embargo_time = 0;
 	this.key_layout = null;
+	this.key_variant = null;
 	this.last_keycode_pressed = 0;
 	this.last_key_packet = [];
 	// mouse
@@ -777,11 +778,12 @@ XpraClient.prototype._check_browser_language = function(key_layout) {
 	if (now<this.browser_language_change_embargo_time) {
 		return;
 	}
+	let detect_browser_language = getboolparam("detect_browser_language", true, true);
+	let new_variant = "";
 	let new_layout;
 	if (key_layout) {
 		new_layout = key_layout;
-	}
-	else {
+	} else if (detect_browser_language) {
 		//we may have used a different layout for a specific key,
 		//and now this new key doesn't need it anymore,
 		//so we may want to switch back to the original layout:
@@ -793,16 +795,18 @@ XpraClient.prototype._check_browser_language = function(key_layout) {
 			this.browser_language = l;
 			new_layout = Utilities.getKeyboardLayout();
 		}
-		else {
-			//this will honour the setting supplied by the user on the connect page
-			//or default to Utilities.getKeyboardLayout()
-			new_layout = this._get_keyboard_layout() || "us";
-		}
+	} else {
+		//this will honour the setting supplied by the user on the connect page
+		//or default to Utilities.getKeyboardLayout()
+		new_layout = this._get_keyboard_layout() || "us";
+		new_variant = this._get_keyboard_layout_variant() || "";
 	}
-	if (new_layout!=null && this.key_layout!=new_layout) {
+
+	if (new_layout!=null && this.key_layout!=new_layout || this.key_variant!=new_variant) {
+		this.clog("keyboard layout changed from", this.key_layout, "to", new_layout, new_variant);
 		this.key_layout = new_layout;
-		this.clog("keyboard layout changed from", this.key_layout, "to", key_layout);
-		this.send(["layout-changed", new_layout, ""]);
+		this.key_variant = new_variant;
+		this.send(["layout-changed", new_layout, new_variant]);
 		//changing the language too quickly can cause problems server side,
 		//wait a bit before checking again:
 		this.browser_language_change_embargo_time = now + 1000;
@@ -888,12 +892,15 @@ XpraClient.prototype.do_keyb_process = function(pressed, event) {
 	}
 	//fallback to keycode map:
 	else {
-		if (keycode in CHARCODE_TO_NAME) {
-			keyname = CHARCODE_TO_NAME[keycode];
+		let charcodes = this._get_keycodes_for_layout();
+		if (keycode in charcodes) {
+			keyname = charcodes[keycode];
 		}
+		let key_layout = this._get_keyboard_layout()
 		//may override with shifted table:
-		if (event.getModifierState && event.getModifierState("Shift") && keycode in CHARCODE_TO_NAME_SHIFTED) {
-			keyname = CHARCODE_TO_NAME_SHIFTED[keycode];
+		let layout = this.keyboard_layout
+		if (event.getModifierState && event.getModifierState("Shift") && LAYOUT_CHARCODE_TO_NAME_SHIFTED[key_layout] && keycode in LAYOUT_CHARCODE_TO_NAME_SHIFTED[key_layout]) {
+			keyname = LAYOUT_CHARCODE_TO_NAME_SHIFTED[key_layout][keycode];
 		}
 	}
 
@@ -985,6 +992,21 @@ XpraClient.prototype.do_keyb_process = function(pressed, event) {
 	}
 
 	if (this.topwindow != null) {
+		// Map non-acute keysym if previous key was dead_acute.
+		// This lets the server-side keyboard layout handle the dead+acute action and fixes issues with Spanish keyboard layouts.
+		if (this.last_key_packet.length > 0) {
+			let accent_pattern = new RegExp('^dead_(acute|tilde|circumflex|grave|diaeresis)');
+			let ma_accent = this.last_key_packet[2].match(accent_pattern);
+			if (ma_accent) {
+				this.debug("keyboard", "handling dead key: " + this.last_key_packet[2]);
+				let pattern = new RegExp('^([aeiouyAEIOUY])('+ ma_accent[1] + ')$');
+				var ma = keyname.match(pattern);
+				if (ma !== null && ma.length > 1) {
+					keyname = ma[1];
+				}
+			}
+		}
+
 		let packet = ["key-action", this.topwindow, keyname, pressed, modifiers, keyval, str, keycode, group];
 		this.key_packets.push(packet);
 		if (unpress_now) {
@@ -1026,18 +1048,42 @@ XpraClient.prototype._keyb_onkeyup = function(event, ctx) {
 
 XpraClient.prototype._get_keyboard_layout = function() {
 	this.debug("keyboard", "_get_keyboard_layout() keyboard_layout=", this.keyboard_layout);
-	if (this.keyboard_layout)
-		return this.keyboard_layout;
-	return Utilities.getKeyboardLayout();
+	let layout = this.keyboard_layout;
+	if (!layout)
+		layout = Utilities.getKeyboardLayout();
+	let layout_variant = layout.split(" ");
+	if (layout_variant.length > 1) {
+		layout = layout_variant[0];
+	}
+	return layout;
 };
+
+XpraClient.prototype._get_keyboard_layout_variant = function() {
+	this.debug("keyboard", "_get_keyboard_layout_variant() keyboard_layout=", this.keyboard_layout);
+	let variant = "";
+	let layout = this.keyboard_layout;
+	if (!layout)
+		layout = Utilities.getKeyboardLayout();
+	let layout_variant = layout.split(" ");
+	if (layout_variant.length > 1) {
+		variant = layout_variant[1];
+	}
+	return variant;
+};
+
+XpraClient.prototype._get_keycodes_for_layout = function() {
+	let key_layout = this.keyboard_layout;
+	return {...CHARCODE_TO_NAME, ...LAYOUT_CHARCODE_OVERRIDES[key_layout]};
+}
 
 XpraClient.prototype._get_keycodes = function() {
 	//keycodes.append((nn(keyval), nn(name), nn(keycode), nn(group), nn(level)))
 	const keycodes = [];
 	let kc;
-	for(const keycode in CHARCODE_TO_NAME) {
+	let charcodes = this._get_keycodes_for_layout();
+	for(const keycode in charcodes) {
 		kc = parseInt(keycode);
-		keycodes.push([kc, CHARCODE_TO_NAME[keycode], kc, 0, 0]);
+		keycodes.push([kc, charcodes[keycode], kc, 0, 0]);
 	}
 	//show("keycodes="+keycodes.toSource());
 	return keycodes;
@@ -1335,6 +1381,7 @@ XpraClient.prototype._make_hello = function() {
 		//support older servers which use a capability for enabling 'scroll' encoding:
 		this._update_capabilities({"encoding.scrolling"		: true});
 	}
+	this.key_variant = this._get_keyboard_layout_variant();
 	this._update_capabilities({
 		"auto_refresh_delay"		: 500,
 		"randr_notify"				: true,

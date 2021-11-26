@@ -1736,16 +1736,45 @@ for (let i=0; i<10; i++) {
 for (let i=1; i<=24; i++) {
 	CHARCODE_TO_NAME[111+i] = "F"+i;
 }
-//overrides: only for 'de' layout?
-CHARCODE_TO_NAME[192] = "dead_circumflex";
-CHARCODE_TO_NAME[219] = "backtick";
-CHARCODE_TO_NAME[221] = "dead_acute";
-CHARCODE_TO_NAME[220] = "dead_circumflex";
-CHARCODE_TO_NAME[187] = "dead_acute";
-CHARCODE_TO_NAME_SHIFTED = {}
-CHARCODE_TO_NAME_SHIFTED[187] = "dead_grave";
-CHARCODE_TO_NAME_SHIFTED[221] = "dead_grave";
 
+LAYOUT_CHARCODE_OVERRIDES = {
+	"br": {
+		219: "dead_acute",
+		222: "dead_tilde",
+	},
+	"de": {
+		220: "dead_circumflex",
+		219: "backtick",
+		221: "dead_acute",
+	},
+	"es": {
+		186: "dead_grave",
+		222: "dead_acute",
+	},
+	"pt": {
+		219: "dead_acute",
+		222: "dead_tilde",
+	},
+	"us": {
+		192: "dead_grave",
+		222: "dead_acute",
+	}
+}
+
+LAYOUT_CHARCODE_TO_NAME_SHIFTED = {
+	"de": {
+		221: "dead_grave",
+	},
+	"es": {
+		186: "dead_circumflex",
+		222: "dead_diaeresis",
+	},
+	"pt": {
+		54: "dead_diaeresis",
+		219: "dead_grave",
+		222: "dead_circumflex",
+	},
+}
 
 /**
  * Converts an event into a list of modifiers.

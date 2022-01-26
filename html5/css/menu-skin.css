@@ -52,19 +52,21 @@ SOFTWARE.
     padding: 0px 0px 0px 0px !important;
     background: grey !important;
     background-color: #777 !important;
-    border-radius: 4px;
+    border-radius: 0px 0px 4px 4px;
 }
 
 #float_menu_actions {
     float: right;
-    border-radius: 4px;
+    border-radius: 0px 0px 4px 0px;
+    width: auto;
+    display: inline-flex;
 }
 
 #float_menu_window_list {
     float: left;
     display: inline-flex;
     flex-shrink: 2;
-    max-width: 86%;
+    width: 100%;
     max-height: 100%;
     margin: 0px;
     padding: 0px;

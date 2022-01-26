@@ -170,19 +170,33 @@ function init_float_menu() {
 	const toolbar_position = getparam("toolbar_position");
 	var float_menu_element = $('#float_menu');
 	var old_element = $("#float_menu_old");
-	var new_element = $('#float_menu_new');
+	var new_element = $("#float_menu_new");
+	var menu_list_element = $("#menu_list");
+	var old_menu_list_element = $("#menu_list_old");
+	var new_menu_list_element = $("#menu_list_new");
 	if (window_tray) {
 		if (new_element.length > 0) {
 			console.log("Showing new window tray");
+			// Swap float menu
 			float_menu_element.attr('id', 'float_menu_old');
 			float_menu_element = new_element;
 			float_menu_element.attr('id', 'float_menu');
+		}
+		if (new_menu_list_element.length > 0) {
+			// Swap menu list
+			menu_list_element.attr('id', 'menu_list_old');
+			menu_list_element = new_menu_list_element;
+			menu_list_element.attr('id', 'menu_list');
 		}
 	} else if (old_element.length > 0) {
 		// Restore swapped float menu
 		float_menu_element.attr('id', 'float_menu_new');
 		old_element.attr('id', "float_menu");
 		float_menu_element = old_element;
+		// Restore swapped menu list
+		menu_list_element.attr('id', 'menu_list_new');
+		old_menu_list_element.attr('id', 'menu_list');
+		menu_list_element = old_menu_list_element;
 	}
 	if (!floating_menu) {
 		float_menu_element.hide();
@@ -204,20 +218,14 @@ function init_float_menu() {
 		}
 		float_menu_element.offset({ top: top, left: left });
 
-		// TODO: support window tray hiding.
-		if (window_tray) {
+		if (autohide) {
+			float_menu_element.on('mouseover', expand_float_menu);
+			float_menu_element.on('mouseout', retract_float_menu);
+			retract_float_menu();
+		} else {
 			float_menu_element.off('mouseover', expand_float_menu);
 			float_menu_element.off('mouseout', retract_float_menu);
 			expand_float_menu();
-		} else {
-			if (autohide) {
-				float_menu_element.on('mouseover', expand_float_menu);
-				float_menu_element.on('mouseout', retract_float_menu);
-			} else {
-				float_menu_element.off('mouseover', expand_float_menu);
-				float_menu_element.off('mouseout', retract_float_menu);
-				expand_float_menu();
-			}
 		}
 		update_autohide_menu_element(autohide);
 
@@ -344,7 +352,7 @@ function apps_button_click() {
 }
 
 function update_autohide_menu_element(autohide) {
-	var autohide_menu_element = $('#autohide_menu');
+	var autohide_menu_element = $('.autohide_menu');
 	if (autohide) {
 		autohide_menu_element.attr("data-icon", "visibility");
 		autohide_menu_element.text("Always Show Menu");
@@ -355,9 +363,6 @@ function update_autohide_menu_element(autohide) {
 }
 
 function toggle_menu_auto_hide() {
-	// TODO: support autohide for window tray feature
-	if (getboolparam("window_tray", false, true)) return;
-
 	var oldvalue = getboolparam("autohide", false, true);
 	var newvalue = !oldvalue;
 
@@ -371,6 +376,7 @@ function toggle_menu_auto_hide() {
 	if (newvalue) {
 		float_menu_element.on('mouseover', expand_float_menu);
 		float_menu_element.on('mouseout', retract_float_menu);
+		retract_float_menu();
 	} else {
 		float_menu_element.off('mouseover', expand_float_menu);
 		float_menu_element.off('mouseout', retract_float_menu);

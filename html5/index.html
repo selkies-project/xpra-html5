@@ -117,7 +117,7 @@
 					<li class="-hasSubmenu -noChevron keyboard-layout-buttons" style="display: none">
 						<!-- TODO set flag-icon per current client.key_layout -->
 						<a href="#" id="current-keyboard-layout" class="noDrag flag-icon flag-icon-us" title="Keyboard Layout"></a>
-						<ul id="menu_list">
+						<ul>
 							<li class="-noChevron">
 								<a href="#" id="keyboard-layout-us" data-flag="us" data-keyboard="us" class="flag-icon flag-icon-us">English USA</a>
 							</li>
@@ -146,6 +146,9 @@
 						<ul id="menu_list">
 							<li class="-noChevron">
 								<a href="#" data-icon="web_asset" onclick="swap_menu_trays()">Switch to Floating Menu</a>
+							</li>
+							<li>
+								<a href="#" data-icon="visibility_off" class="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a>
 							</li>
 							<li>
 								<a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a>
@@ -211,7 +214,7 @@
 							</li>
 							-->
 							<li><a href="#" data-icon="web_asset" onclick="swap_menu_trays()">Switch to Window Tray</a></li>
-							<li><a href="#" data-icon="visibility_off" id="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a></li>
+							<li><a href="#" data-icon="visibility_off" class="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a></li>
 							<li><a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a></li>
 							<li><a href="#" data-icon="refresh" onclick="location.reload()">Reload</a></li>
 							<li><a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a></li>
@@ -401,6 +404,8 @@
 			}
 
 			const float_menu_item_size = 30;
+			const float_menu_padding = 20;
+			let float_menu_width = (float_menu_item_size*5) + float_menu_padding;
 
 			let cdebug = function () {
 				Utilities.clog.apply(Utilities, arguments);
@@ -1405,8 +1410,14 @@
 				}
 			}
 
+			var autohide_timer = null;
 			function expand_float_menu(){
-				if (getboolparam("window_tray", false, true)) return;
+				if (getboolparam("window_tray", false, true)) {
+					clearTimeout(autohide_timer);
+					var el = $("#float_menu");
+					el.stop().animate({top: 0}, 250);
+					return;
+				}
 				var num_menu_items = 4;
 				if ($('#application_button').is(":visible")) num_menu_items++;
 				const expanded_width = (float_menu_item_size*num_menu_items);
@@ -1419,7 +1430,14 @@
 				}
 			}
 			
-			function retract_float_menu(){
+			function retract_float_menu() {
+				if (getboolparam("window_tray", false, true)) {
+					var el = $("#float_menu");
+					autohide_timer = setTimeout( () => {
+						el.stop().animate({top: -29}, 250);
+					}, 700);
+					return;
+				}
 				document.getElementById('float_menu').style.width ='0px'; $('#float_menu').children().hide();
 			}
 

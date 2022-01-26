@@ -188,6 +188,7 @@ function init_float_menu() {
 		float_menu_element.hide();
 	} else {
 		float_menu_element.show();
+		float_menu_element.css('display', "inline-flex");
 		var toolbar_width = float_menu_element.width();
 		var left = 0;
 		var top = float_menu_element.offset().top || 0;

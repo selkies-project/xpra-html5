@@ -609,23 +609,24 @@ XpraClient.prototype._screen_resized = function(event, ctx) {
 	for (const i in ctx.id_to_window) {
 		const iwin = ctx.id_to_window[i];
 		iwin.screen_resized();
-	}
-	// Force fullscreen on a a given window name from the provided settings
-	if (default_settings !== undefined && default_settings.auto_fullscreen !== undefined && default_settings.auto_fullscreen.length > 0) {
-		var pattern = new RegExp(".*" + default_settings.auto_fullscreen + ".*");
-		if (iwin.fullscreen === false && iwin.metadata.title.match(pattern)) {
-			clog("auto fullscreen window: " + iwin.metadata.title);
+
+		// Force fullscreen on a a given window name from the provided settings
+		if (default_settings !== undefined && default_settings.auto_fullscreen !== undefined && default_settings.auto_fullscreen.length > 0) {
+			var pattern = new RegExp(".*" + default_settings.auto_fullscreen + ".*");
+			if (iwin.fullscreen === false && iwin.metadata.title.match(pattern)) {
+				clog("auto fullscreen window: " + iwin.metadata.title);
+				iwin.set_fullscreen(true);
+				iwin.screen_resized();
+			}
+		}
+
+		// Make a DESKTOP-type window fullscreen automatically.
+		// This resizes things like xfdesktop according to the window size.
+		if (iwin.fullscreen === false && client.is_window_desktop(iwin)) {
+			clog("auto fullscreen desktop window: " + iwin.metadata.title);
 			iwin.set_fullscreen(true);
 			iwin.screen_resized();
 		}
-	}
-
-	// Make a DESKTOP-type window fullscreen automatically.
-	// This resizes things like xfdesktop according to the window size.
-	if (this.fullscreen === false && this.client.is_window_desktop(iwin)) {
-		clog("auto fullscreen desktop window: " + this.metadata.title);
-		this.set_fullscreen(true);
-		this.screen_resized();
 	}
 	// Re-position floating toolbar menu
 	init_float_menu();
@@ -3312,7 +3313,6 @@ XpraClient.prototype._process_eos = function(packet, ctx) {
 
 
 XpraClient.prototype.request_redraw = function(win) {
-
 	if (document.hidden) {
 		this.debug("draw", "not redrawing, document.hidden=", document.hidden);
 		return;

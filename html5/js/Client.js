@@ -71,6 +71,7 @@ XpraClient.prototype.init_settings = function(container) {
 	this.key_packets = [];
 	this.clipboard_delayed_event_time = 0;
 
+	this.resize_screen = true;
 	this.scale = 1;
 	this.vrefresh = -1;
 	this.bandwidth_limit = 0;
@@ -85,7 +86,8 @@ XpraClient.prototype.init_settings = function(container) {
 	this.PING_GRACE = 2000;
 	this.PING_FREQUENCY = 5000;
 	this.INFO_FREQUENCY = 1000;
-	this.uuid = Utilities.getHexUUID();
+	this.uuid = Utilities.getsessionparam("client_uuid", true) || Utilities.getHexUUID();
+	Utilities.setsessionparam("client_uuid", this.uuid, true);
 };
 
 XpraClient.prototype.init_state = function(container) {
@@ -587,29 +589,31 @@ XpraClient.prototype._screen_resized = function(event, ctx) {
 	this.desktop_width = this.container.clientWidth;
 	this.desktop_height = this.container.clientHeight;
 	const newsize = [this.desktop_width, this.desktop_height];
-	const packet = ["desktop_size", newsize[0], newsize[1], this._get_screen_sizes()];
-	ctx.send(packet);
+	if (ctx.resize_screen) {
+		const packet = ["desktop_size", newsize[0], newsize[1], this._get_screen_sizes()];
+		ctx.send(packet);
+	}
 	// call the screen_resized function on all open windows
 	for (const i in ctx.id_to_window) {
 		const iwin = ctx.id_to_window[i];
 		iwin.screen_resized();
-	}
-	// Force fullscreen on a a given window name from the provided settings
-	if (default_settings !== undefined && default_settings.auto_fullscreen !== undefined && default_settings.auto_fullscreen.length > 0) {
-		var pattern = new RegExp(".*" + default_settings.auto_fullscreen + ".*");
-		if (iwin.fullscreen === false && iwin.metadata.title.match(pattern)) {
-			clog("auto fullscreen window: " + iwin.metadata.title);
+
+		// Force fullscreen on a a given window name from the provided settings
+		if (default_settings !== undefined && default_settings.auto_fullscreen !== undefined && default_settings.auto_fullscreen.length > 0) {
+			var pattern = new RegExp(".*" + default_settings.auto_fullscreen + ".*");
+			if (iwin.fullscreen === false && iwin.metadata.title.match(pattern)) {
+				clog("auto fullscreen window: " + iwin.metadata.title);
+				iwin.set_fullscreen(true);
+				iwin.screen_resized();
+			}
+		}
+		// Make a DESKTOP-type window fullscreen automatically.
+		// This resizes things like xfdesktop according to the window size.
+		if (iwin.fullscreen === false && client.is_window_desktop(iwin)) {
+			clog("auto fullscreen desktop window: " + iwin.metadata.title);
 			iwin.set_fullscreen(true);
 			iwin.screen_resized();
 		}
-	}
-
-	// Make a DESKTOP-type window fullscreen automatically.
-	// This resizes things like xfdesktop according to the window size.
-	if (iwin.fullscreen === false && client.is_window_desktop(iwin)) {
-		clog("auto fullscreen desktop window: " + iwin.metadata.title);
-		iwin.set_fullscreen(true);
-		iwin.screen_resized();
 	}
 	// Re-position floating toolbar menu
 	init_float_menu();
@@ -1520,6 +1524,7 @@ XpraClient.prototype.do_window_mouse_move = function(e, window) {
 	if (this.server_readonly || this.mouse_grabbed || !this.connected) {
 		return;
 	}
+	if (window === null) return;
 	const mouse = this.getMouse(e, window),
 		x = Math.round(mouse.x),
 		y = Math.round(mouse.y);
@@ -1551,6 +1556,7 @@ XpraClient.prototype.do_window_mouse_click = function(e, window, pressed) {
 		this.debug("clicked on float_menu, skipping event handler", e);
 		return;
 	}
+	if (window === null) return;
 	let send_delay = 0;
 	if (client.clipboard_direction !== "to-server" && this._poll_clipboard(e)) {
 		send_delay = CLIPBOARD_EVENT_DELAY;
@@ -2769,9 +2775,14 @@ XpraClient.prototype._new_window = function(wid, x, y, w, h, metadata, override_
 	if (this.is_window_desktop(win)) {
 		update_apps_button();
 	}
+
+	if (String(wid) === this.maximize_wid) {
+		win.set_maximized(true);
+	}
 };
 
 XpraClient.prototype._new_window_common = function(packet, override_redirect) {
+	console.log("handling new-window packet: ", packet);
 	const wid = packet[1];
 	let x = packet[2];
 	let y = packet[3];

@@ -720,6 +720,9 @@
 				const autohide = getboolparam("autohide", false);
 				const override_width = getfloatparam("override_width", window.innerWidth);
 				const device_dpi_scaling = (default_settings["device_dpi_scaling"] || "false").toLowerCase() === "true";
+				const client_uuid = getparam("uuid") || "";
+				const maximize_wid = getparam("maximize_wid") || "";
+				const resize_screen = getboolparam("resize_screen", true);
 				vrefresh = getintparam("vrefresh", -1);
 				if (vrefresh<0 && fps>=30) {
 					vrefresh = fps;
@@ -826,6 +829,13 @@
 				//client.PING_TIMEOUT = 60000;
 				//client.PING_GRACE = 30000;
 				//client.PING_FREQUENCY = 15000;
+
+				client.maximize_wid = maximize_wid;
+
+				if (client_uuid !== "") {
+					client.uuid = client_uuid;
+				}
+				client.resize_screen = resize_screen;
 
 				if (debug) {
 					//example of client event hooks:

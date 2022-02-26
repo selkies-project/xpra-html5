@@ -139,6 +139,7 @@ function XpraWindow(client, canvas_state, wid, x, y, w, h, metadata, override_re
 				'<span class="windowicon"><img class="windowicon" id="windowicon' + String(wid) + '" /></span> '+
 				'<span class="windowtitle" id="title' + String(wid) + '">' + this.title + '</span> '+
 				'<span class="windowbuttons"> '+
+				'<span id="undock' + String(wid) + '"><img src="icons/undock.png" width="16px" height="16px"/></span> '+
 				'<span id="minimize' + String(wid) + '"><img src="icons/minimize.png" /></span> '+
 				'<span id="maximize' + String(wid) + '"><img src="icons/maximize.png" /></span> '+
 				'<span id="close' + String(wid) + '"><img src="icons/close.png" /></span> '+
@@ -196,11 +197,40 @@ function XpraWindow(client, canvas_state, wid, x, y, w, h, metadata, override_re
 		});
 		this.d_header = '#head' + String(wid);
 		this.d_closebtn = '#close' + String(wid);
+		this.d_dockbtn = '#undock' + String(wid);
 		this.d_maximizebtn = '#maximize' + String(wid);
 		this.d_minimizebtn = '#minimize' + String(wid);
 		if (this.resizable) {
 			jQuery(this.d_header).dblclick(function() {
 				me.toggle_maximized();
+			});
+			jQuery(this.d_dockbtn).click(function() {
+				const new_uuid = Utilities.getHexUUID();
+				// Stop sending the target window to the current client.
+				client.send(["filter-client-window", "add", String(wid), "!=", client.uuid]);
+
+				// Only send the target window to new popup window.
+				client.send(["filter-client-window", "add", String(wid), "=", new_uuid]);
+
+				// Open new browser window with the uuid we created earlier, the filter will cause only that window to appear.
+				var popup = window.open(
+					"index.html?uuid=" + new_uuid + "&resize_screen=false&maximize_wid=" + String(wid),
+					"window"+String(wid),
+					"width="+String(client.id_to_window[wid].w)+",height="+String(client.id_to_window[wid].h),
+				);
+				popup.addEventListener("beforeunload",function(e) {
+					console.log("popup closed for window " + wid);
+					// Clear the filters.
+					client.send(["reset-window-filters"]);
+					client.send(["filter-client-window", "add", String(wid), "=", "*"]);
+					client.send(["resend-window", wid]);
+				}, false);
+				// Remove the window from this session.
+				// client._process_lost_window(["lost-window", String(wid)], client);
+				// client.id_to_window[wid].toggle_minimized();
+				window.removeWindowListItem(wid);
+				client.id_to_window[wid].destroy();
+				delete client.id_to_window[wid];
 			});
 			jQuery(this.d_closebtn).click(function() {
 				window_closed_cb(me);
@@ -214,6 +244,7 @@ function XpraWindow(client, canvas_state, wid, x, y, w, h, metadata, override_re
 		}
 		else {
 			jQuery(this.d_closebtn).hide();
+			jQuery(this.d_popoutbtn).hide();
 			jQuery(this.d_maximizebtn).hide();
 			jQuery('#windowlistitemmax' + String(wid)).hide();
 			jQuery(this.d_minimizebtn).hide();

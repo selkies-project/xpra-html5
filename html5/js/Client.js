@@ -1095,21 +1095,16 @@ XpraClient.prototype._get_desktop_size = function() {
 };
 
 XpraClient.prototype._get_DPI = function() {
-	if (window.devicePixelRatio !== undefined) {
-		return Math.round(96 * devicePixelRatio);
-	}
-	"use strict";
+	var dpi = 96;
 	const dpi_div = document.getElementById("dpi");
 	if (dpi_div != undefined) {
 		//show("dpiX="+dpi_div.offsetWidth+", dpiY="+dpi_div.offsetHeight);
 		if (dpi_div.offsetWidth>0 && dpi_div.offsetHeight>0)
-			return Math.round((dpi_div.offsetWidth + dpi_div.offsetHeight) / 2.0);
+			dpi = (dpi_div.offsetWidth + dpi_div.offsetHeight) / 2.0;
+	} else if ('deviceXDPI' in screen) {
+		dpi = (screen.systemXDPI + screen.systemYDPI) / 2;
 	}
-	//alternative:
-	if ('deviceXDPI' in screen)
-		return (screen.systemXDPI + screen.systemYDPI) / 2;
-	//default:
-	return 96;
+	return Math.round(dpi * client.scale);
 };
 
 XpraClient.prototype._get_screen_sizes = function() {

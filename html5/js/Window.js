@@ -324,7 +324,7 @@ XpraWindow.prototype.register_canvas_pointer_events = function(canvas) {
 			const dy = ev.offsetY-me.pointer_last_y;
 			me.pointer_last_x = ev.offsetX;
 			me.pointer_last_y = ev.offsetY;
-			const mult = 20.0*(window.devicePixelRatio || 1);
+			const mult = 20.0*(client.scale || 1);
 			ev.wheelDeltaX = Math.round(dx*mult);
 			ev.wheelDeltaY = Math.round(dy*mult);
 			me.on_mousescroll(ev);
@@ -1185,11 +1185,11 @@ XpraWindow.prototype.set_cursor = function(encoding, w, h, xhot, yhot, img_data)
 			const canvas = document.createElement('canvas');
 			const ctx = canvas.getContext('2d');
 			ctx.imageSmoothingEnabled = false;
-			canvas.width = Math.round(w*window.devicePixelRatio);
-			canvas.height = Math.round(h*window.devicePixelRatio);
+			canvas.width = Math.round(w*client.scale);
+			canvas.height = Math.round(h*client.scale);
 			ctx.drawImage(this, 0, 0, canvas.width, canvas.height);
 			var scaled_cursor_url = canvas.toDataURL();
-			set_cursor_url(scaled_cursor_url, Math.round(xhot*window.devicePixelRatio), Math.round(yhot*window.devicePixelRatio));
+			set_cursor_url(scaled_cursor_url, Math.round(xhot*client.scale), Math.round(yhot*client.scale));
 		};
 		tmp_img.src = cursor_url;
 	}

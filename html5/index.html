@@ -723,7 +723,7 @@
 				const toolbar_position = getparam("toolbar_position");
 				const autohide = getboolparam("autohide", false);
 				const override_width = getfloatparam("override_width", window.innerWidth);
-				const device_dpi_scaling = (default_settings["device_dpi_scaling"] || "false").toLowerCase() === "true";
+				const device_dpi_scaling = getboolparam("device_dpi_scaling",false);
 				vrefresh = getintparam("vrefresh", -1);
 				if (vrefresh<0 && fps>=30) {
 					vrefresh = fps;
@@ -750,7 +750,6 @@
 						scale = override_width/window.innerWidth;
 					}
 				}
-				scale = Math.round(scale);
 
 				let progress_timer;
 				const progress_value = 0;

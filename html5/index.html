@@ -156,7 +156,7 @@
 								<a href="#" data-icon="visibility_off" class="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a>
 							</li>
 							<li>
-								<a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Info</a>
+								<a href="#" data-icon="wifi" id="window_tray_bandwidth" onclick="show_sessioninfo(event)">Session Info</a>
 							</li>
 							<li>
 								<a href="#" data-icon="refresh" onclick="location.reload()">Reload</a>
@@ -286,6 +286,10 @@
 				<td id="server_platform"></td>
 			</tr>
 			-->
+			<tr>
+				<th scope="row">Bandwidth (Up/Down)</th>
+				<td id="session_info_bandwidth"></td>
+			</tr>
 			<tr>
 				<th scope="row">Server Load</th>
 				<td id="server_load"></td>
@@ -1550,6 +1554,24 @@
 						client.last_key_packet = [];
 					}
 				});
+
+				// Calculate protocol bandwith stats.
+				client.on_open = (e) => {
+					var bw_stats_start_time_ms = new Date().getTime();
+					var bw_stats_last_inbound_traffic = client.protocol.inbound_traffic;
+					var bw_stats_last_outbound_traffic = client.protocol.outbound_traffic;
+					setInterval(() => {
+						var curr_time_ms = new Date().getTime();
+						var delta_t = ((curr_time_ms - bw_stats_start_time_ms) / 1000);
+						var inbound_rate_s = parseInt( ((client.protocol.inbound_traffic - bw_stats_last_inbound_traffic)/125) / delta_t);
+						bw_stats_last_inbound_traffic = client.protocol.inbound_traffic;
+						var outbound_rate_s = parseInt( ((client.protocol.outbound_traffic - bw_stats_last_outbound_traffic)/125) / delta_t);
+						bw_stats_last_outbound_traffic = client.protocol.outbound_traffic;
+						bw_stats_start_time_ms = curr_time_ms;
+						$('#window_tray_bandwidth').text(`${inbound_rate_s} kbits/s`);
+						$('#session_info_bandwidth').text(`${outbound_rate_s} / ${inbound_rate_s} kbits/s`);
+					}, 1000);
+				}
 			}
 
 			$(document).ready(function() {

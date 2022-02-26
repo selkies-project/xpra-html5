@@ -28,6 +28,8 @@ function XpraProtocolWorkerHost() {
 	this.worker = null;
 	this.packet_handler = null;
 	this.packet_ctx = null;
+	this.inbound_traffic = 0;
+	this.outbound_traffic = 0;
 }
 
 XpraProtocolWorkerHost.prototype.open = function(uri) {
@@ -51,6 +53,10 @@ XpraProtocolWorkerHost.prototype.open = function(uri) {
 				break;
 			case 'l':
 				this.log(data.t);
+				break;
+			case 'b':
+				me.inbound_traffic = data.i;
+				me.outbound_traffic = data.o;
 				break;
 		default:
 			this.error("got unknown command from worker");
@@ -111,6 +117,9 @@ function XpraProtocol() {
 	//Queue processing via intervals
 	this.process_interval = 0;  //milliseconds
 	this.packet_encoder = "bencode";
+
+	this.inbound_traffic = 0;
+	this.outbound_traffic = 0;
 }
 
 XpraProtocol.prototype.close_event_str = function(event) {
@@ -171,6 +180,22 @@ XpraProtocol.prototype.open = function(uri) {
 	// connect the socket
 	try {
 		this.websocket = new WebSocket(uri, 'binary');
+		this.inbound_traffic = 0;
+		this.outbound_traffic = 0;
+		var newWebSocket = (uri) => {
+			console.log("inside websocket wraper");
+			var ws = new WebSocket(uri, 'binary');
+			var wsSend = ws.send;
+			ws.send = function(data) {
+				me.outbound_traffic += data.byteLength;
+				return wsSend.call(ws,data);
+			}
+			ws.addEventListener("message", function (event) {
+				me.inbound_traffic += event.data.byteLength;
+			});
+			return ws;
+		};
+		this.websocket = newWebSocket(uri);
 	}
 	catch (e) {
 		this.packet_handler(['error', ""+e, 0], this.packet_ctx);
@@ -722,4 +747,9 @@ if (!(typeof window == "object" && typeof document == "object" && window.documen
 	}, false);
 	// tell host we are ready
 	postMessage({'c': 'r'});
+
+	// periodically send connection stats.
+	setInterval( () => {
+		postMessage({'c': 'b', 'i': protocol.inbound_traffic, 'o': protocol.outbound_traffic});
+	}, 500);
 }

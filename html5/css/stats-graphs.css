@@ -1,0 +1,41 @@
+#stats {
+    position: absolute;
+    display: block;
+    top: 40px;
+    right: 40px;
+    width: 100px;
+    z-index: 100001;
+    border: 1px solid rgba(0, 0, 0, 0.50);
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.50);
+}
+
+.stats-row {
+    display: block;
+}
+
+#stats_loading {
+    position: absolute;
+    display: block;
+}
+
+#stats_loading.spinner {
+    width: 1em;
+    height: 1em;
+    margin-left: 35%;
+}
+
+#stats_header {
+    background-color: rgba(0, 0, 0, 0.55);
+    display: inline-flex;
+    width: 100%;
+}
+
+#stats_close_btn {
+    cursor: pointer;
+    position: relative;
+    margin-left: auto;
+    right: 0.1em;
+    filter: invert(100%);
+    opacity: 50%;
+}

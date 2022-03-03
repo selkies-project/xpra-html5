@@ -80,6 +80,9 @@
 
 		<!-- custom notifications CSS -->
 		<link rel="stylesheet" type="text/css" href="css/notifications-custom.css"/>
+
+		<!-- sparkline plugin for stats graphs -->
+		<script type="application/javascript" src="js/jquery.sparkline.js"></script>
 	</head>
 
 	<body>
@@ -159,7 +162,7 @@
 								<a href="#" data-icon="visibility_off" class="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a>
 							</li>
 							<li>
-								<a href="#" data-icon="wifi" id="window_tray_bandwidth" onclick="show_sessioninfo(event)">Session Info</a>
+								<a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Stats</a>
 							</li>
 							<li>
 								<a href="#" data-icon="refresh" onclick="location.reload()">Reload</a>
@@ -271,7 +274,6 @@
 			<h3>Connection Data</h3>
 			<table id='sessiondata'>
 			<caption>Session Connection Data Information</caption>
-			<!-- SELKIES ONLY
 			<tr>
 				<th scope="row">Server Endpoint</th>
 				<td id="endpoint"></td>
@@ -287,11 +289,6 @@
 			<tr>
 				<th scope="row">Server Platform</th>
 				<td id="server_platform"></td>
-			</tr>
-			-->
-			<tr>
-				<th scope="row">Bandwidth (Up/Down)</th>
-				<td id="session_info_bandwidth"></td>
 			</tr>
 			<tr>
 				<th scope="row">Server Load</th>
@@ -1465,6 +1462,7 @@
 			}
 
 			let client;
+			window.stats_listeners = [];
 			function init_page() {
 				const touchaction = getparam("touchaction") || "scroll";
 				touchaction_scroll = touchaction == "scroll";
@@ -1570,8 +1568,13 @@
 						var outbound_rate_s = parseInt( ((client.protocol.outbound_traffic - bw_stats_last_outbound_traffic)/125) / delta_t);
 						bw_stats_last_outbound_traffic = client.protocol.outbound_traffic;
 						bw_stats_start_time_ms = curr_time_ms;
-						$('#window_tray_bandwidth').text(`${inbound_rate_s} kbits/s`);
-						$('#session_info_bandwidth').text(`${outbound_rate_s} / ${inbound_rate_s} kbits/s`);
+						var stats = {
+							inbound_rate_s: inbound_rate_s,
+							outbound_rate_s: outbound_rate_s,
+						}
+						for (listener of window.stats_listeners) {
+							listener(stats);
+						}
 					}, 1000);
 				}
 			}
@@ -1601,5 +1604,8 @@
 				xhr.send();
 			});
 		</script>
+		<!-- stats graph addon -->
+		<script type="application/javascript" src="js/StatsGraphs.js"></script>
+		<link rel="stylesheet" href="css/stats-graphs.css">
 	</body>
 </html>

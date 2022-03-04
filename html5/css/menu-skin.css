@@ -24,6 +24,8 @@ SOFTWARE.
 */
 
 #float_menu {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.9em;
 	display: none;
 	height: 30px;
 	padding: 0px 0px 0px 20px;
@@ -49,27 +51,70 @@ SOFTWARE.
 .float-menu-new {
     display: none;
     width: 50%;
+    min-width: 320px;
+    max-width: 800px;
     padding: 0px 0px 0px 0px !important;
     background: grey !important;
-    background-color: #777 !important;
+    background-color: #3e3e3e !important;
+    opacity: 95%;
+    border-color: #3e3e3e !important;
     border-radius: 0px 0px 4px 4px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
 }
 
-#float_menu_actions {
-    float: right;
-    border-radius: 0px 0px 4px 0px;
-    width: auto;
-    display: inline-flex;
+#window_tray_list_content {
+    display: flex;
+    flex-grow: 1;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+#window_tray_actions_content {
+    display: flex;
+    flex-shrink: 0;
 }
 
 #float_menu_window_list {
-    float: left;
-    display: inline-flex;
-    flex-shrink: 2;
-    width: 100%;
-    max-height: 100%;
-    margin: 0px;
-    padding: 0px;
+    display: flex;
+    flex-grow: 1;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#float_menu_actions {
+    /* border-left: 1px solid rgba(0, 0, 0, 0.507); */
+    border-radius: 0px 0px 4px 0px;
+    background-color: transparent !important;
+}
+
+/* SELKIES - invert colors on action buttons */
+.float-menu-new .window-list-button, .float-menu-new .fullscreen-button, .float-menu-new .keyboard-button, .float-menu-new .audio-button, .float-menu-new .menu-button {
+    filter: invert(1);
+}
+
+/* SELKIES - make menu list same color as tray */
+.window-tray-menu-list {
+    background-color: #3e3e3e !important;
+    opacity: 95%;
+}
+.window-tray-menu-list li {
+    filter: invert(1);
+}
+
+/* SELKIES - make keyboard layout selector same color as tray */
+.keyboard-layout-menu {
+    background-color: #3e3e3e !important;
+}
+.keyboard-layout-menu .keyboard-layout-text {
+    filter: invert(1);
 }
 
 .menu-divleft {
@@ -78,11 +123,10 @@ SOFTWARE.
 }
 
 .menu-divleft-new {
-    float:left;
-    clear:left;
-    width: 100%;
     display: flex;
-    flex-shrink: 2;
+    flex-direction: row;
+    flex-grow: 1;
+    align-items: stretch;
 }
 
 .menu-divright {
@@ -128,18 +172,21 @@ SOFTWARE.
 }
 
 .windowlist-li-new {
-    width: 240px;
-    margin-left: 2px;
-    margin-right: 2px;
-    margin-top: 2px;
-    margin-bottom: 2px;
-    border: 1px solid #555;
-    border-radius: 5px;
+    display: flex;
+    flex-grow: 1;
+    align-items: stretch;
+    max-width: 240px;
     min-width: 1%;
-    display: inline-block;
+    margin: 2px;
     padding: 1px;
     background-color: #BBB;
     cursor: default;
+    border: 1px solid #555;
+    border-radius: 5px;
+}
+
+.windowlist-li-new a {
+    width: 100%;
 }
 
 .windowlist-minimized {

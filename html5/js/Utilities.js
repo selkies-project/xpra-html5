@@ -293,8 +293,9 @@ const Utilities = {
 	},
 
 	isMobile : function () {
-	    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-	},
+		return (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+			|| (navigator.userAgent.includes("Mac") && "ontouchend" in document));
+		},
 
 	getSimpleUserAgentString : function() {
 		if (Utilities.isFirefox()) {

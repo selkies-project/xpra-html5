@@ -15,7 +15,7 @@
 		<meta name="mobile-web-app-capable" content="yes">
 		<link rel="shortcut icon" type="image/png" href="favicon.png" id="favicon">
 		<link rel="apple-touch-icon" href="apple-touch-icon.png">
-
+		<link rel="stylesheet" href="css/materialdesignicons.css">
 		<link rel="stylesheet" href="css/client.css">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="css/spinner.css">
@@ -27,6 +27,7 @@
 		<script type="text/javascript" src="js/lib/jquery-ui.js"></script>
 		<script type="text/javascript" src="js/lib/jquery.ba-throttle-debounce.js"></script>
 		<script type="text/javascript" src="js/lib/jquery-transform-draggable.js"></script>
+		<script type="text/javascript" src="js/lib/jquery.swipe-detector.js"></script>
 
 		<script type="text/javascript" src="js/lib/rencode.js"></script>
 		<script type="text/javascript" src="js/lib/bencode.js"></script>
@@ -83,6 +84,10 @@
 
 		<!-- sparkline plugin for stats graphs -->
 		<script type="application/javascript" src="js/jquery.sparkline.js"></script>
+
+		<!-- loading screen plugin -->
+		<script type="application/javascript" src="js/LoadingScreen.js"></script>
+		<link rel="stylesheet" href="css/loading-screen.css">
 	</head>
 
 	<body>
@@ -114,69 +119,76 @@
 
 		<div id="screen" style="width: 100%; height:100%;">
 			<div id="float_menu_new" class="float-menu-new">
-				<ul id="float_menu_window_list"></ul>
-				<ul id="float_menu_actions" class="Menu -horizontal">
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" class="noDrag window-list-button" onclick="client.toggle_window_preview()" title="Show Open Windows" data-icon="filter"></a>
-					</li>
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" class="noDrag fullscreen-button" title="Fullscreen" data-icon="fullscreen"></a>
-					</li>
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" class="noDrag keyboard-button" title="Keyboard" data-icon="keyboard"></a>
-					</li>
-					<li class="-hasSubmenu -noChevron keyboard-layout-buttons" style="display: none">
-						<!-- TODO set flag-icon per current client.key_layout -->
-						<a href="#" id="current-keyboard-layout" class="noDrag flag-icon flag-icon-us" title="Keyboard Layout"></a>
-						<ul>
-							<li class="-noChevron">
-								<a href="#" id="keyboard-layout-us" data-flag="us" data-keyboard="us" class="flag-icon flag-icon-us">English USA</a>
-							</li>
-							<li class="-noChevron">
-								<a href="#" id="keyboard-layout-gb" data-flag="gb" data-keyboard="gb" class="flag-icon flag-icon-gb">United Kingdom</a>
-							</li>
-							<li class="-noChevron">
-								<a href="#" id="keyboard-layout-fr" data-flag="fr" data-keyboard="fr" class="flag-icon flag-icon-fr">France</a>
-							</li>
-							<li class="-noChevron">
-								<a href="#" id="keyboard-layout-de" data-flag="de" data-keyboard="de" class="flag-icon flag-icon-de">Germany</a>
-							</li>
-							<li class="-noChevron">
-								<a href="#" id="keyboard-layout-es" data-flag="es" data-keyboard="es" class="flag-icon flag-icon-es">Spain</a>
-							</li>
-							<li class="-noChevron">
-								<a href="#" id="keyboard-layout-br-abnt2" data-flag="br" data-keyboard="pt" class="flag-icon flag-icon-br">Brazil ABNT2</a>
-							</li>
-						</ul>
-					</li>
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" id="sound_button" title="Audio" data-icon="volume_off"></a>
-					</li>
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" title="Xpra" class="noDrag" data-icon="menu"></a>
-						<ul id="menu_list">
-							<li class="-noChevron">
-								<a href="#" data-icon="web_asset" onclick="swap_menu_trays()">Switch to Floating Menu</a>
-							</li>
-							<li>
-								<a href="#" data-icon="visibility_off" class="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a>
-							</li>
-							<li>
-								<a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Stats</a>
-							</li>
-							<li>
-								<a href="#" data-icon="refresh" onclick="location.reload()">Reload</a>
-							</li>
-							<li class="-noChevron">
-								<a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a>
-							</li>
-						</ul>
-					</li>
-				</ul>
+				<div id="window_tray_list_content">
+					<ul id="float_menu_window_list"></ul>
+				</div>
+				<div id="window_tray_actions_content">
+					<ul id="float_menu_actions" class="Menu -horizontal">
+						<li class="-hasSubmenu -noChevron">
+							<a href="#" class="window-list-button" onclick="client.toggle_window_preview()" title="Show Open Windows" data-icon="filter"></a>
+						</li>
+						<li class="-hasSubmenu -noChevron">
+							<a href="#" class="fullscreen-button" title="Fullscreen" data-icon="fullscreen"></a>
+						</li>
+						<li class="-hasSubmenu -noChevron">
+							<a href="#" class="keyboard-button" title="Keyboard" data-icon="keyboard"></a>
+						</li>
+						<li class="-hasSubmenu -noChevron keyboard-layout-buttons" style="display: none">
+							<!-- TODO set flag-icon per current client.key_layout -->
+							<a href="#" id="current-keyboard-layout" class="flag-icon flag-icon-us" title="Keyboard Layout"></a>
+							<ul class="keyboard-layout-menu">
+								<li class="-noChevron">
+									<a href="#" id="keyboard-layout-us" data-flag="us" data-keyboard="us" class="flag-icon flag-icon-us"><span class="keyboard-layout-text">English USA</span></a>
+								</li>
+								<li class="-noChevron">
+									<a href="#" id="keyboard-layout-gb" data-flag="gb" data-keyboard="gb" class="flag-icon flag-icon-gb"><span class="keyboard-layout-text">United Kingdom</span></a>
+								</li>
+								<li class="-noChevron">
+									<a href="#" id="keyboard-layout-fr" data-flag="fr" data-keyboard="fr" class="flag-icon flag-icon-fr"><span class="keyboard-layout-text">France</span></a>
+								</li>
+								<li class="-noChevron">
+									<a href="#" id="keyboard-layout-de" data-flag="de" data-keyboard="de" class="flag-icon flag-icon-de"><span class="keyboard-layout-text">Germany</span></a>
+								</li>
+								<li class="-noChevron">
+									<a href="#" id="keyboard-layout-es" data-flag="es" data-keyboard="es" class="flag-icon flag-icon-es"><span class="keyboard-layout-text">Spain</span></a>
+								</li>
+								<li class="-noChevron">
+									<a href="#" id="keyboard-layout-br-abnt2" data-flag="br" data-keyboard="pt" class="flag-icon flag-icon-br"><span class="keyboard-layout-text">Brazil ABNT2</span></a>
+								</li>
+							</ul>
+						</li>
+						<li class="-hasSubmenu -noChevron">
+							<a href="#" id="sound_button" title="Audio" data-icon="volume_off" class="audio-button"></a>
+						</li>
+						<li class="-hasSubmenu -noChevron">
+							<a href="#" title="" class="menu-button" data-icon="menu"></a>
+							<ul id="menu_list" class="window-tray-menu-list">
+								<li class="-noChevron">
+									<a href="#" data-icon="web_asset" onclick="swap_menu_trays()">Switch to Floating Menu</a>
+								</li>
+								<li>
+									<a href="#" data-icon="visibility_off" class="autohide_menu" onclick="toggle_menu_auto_hide()">Auto Hide Menu</a>
+								</li>
+								<li>
+									<a href="#" data-icon="monitor" class="hidpi_menu" onclick="toggle_menu_hidpi()">HiDPI</a>
+								</li>
+								<li>
+									<a href="#" data-icon="wifi" onclick="show_sessioninfo(event)">Session Stats</a>
+								</li>
+								<li>
+									<a href="#" data-icon="refresh" onclick="location.reload()">Reload</a>
+								</li>
+								<li class="-noChevron">
+									<a href="#" data-icon="exit_to_app" onclick="client.disconnect_reason='User request'; client.close(); return false">Disconnect</a>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
 			</div>
 
 			<div id="float_menu">
-				<ul class="Menu -horizontal">
+				<ul class="Menu -horizontal noDrag">
 					<!-- WIP apps button
 					<li class="-hasSubmenu -noChevron">
 						<a href="#" id="application_button" onclick="apps_button_click()" title="Applications" data-icon="apps"></a>
@@ -735,7 +747,9 @@
 				const toolbar_position = getparam("toolbar_position");
 				const autohide = getboolparam("autohide", false);
 				const override_width = getfloatparam("override_width", window.innerWidth);
-				const device_dpi_scaling = getboolparam("device_dpi_scaling",false);
+				const device_dpi_scaling = getboolparam("device_dpi_scaling",false, true);
+				const browser_native_notifications = getboolparam("browser_native_notifications", true);
+
 				vrefresh = getintparam("vrefresh", -1);
 				if (vrefresh<0 && fps>=30) {
 					vrefresh = fps;
@@ -835,7 +849,9 @@
 				client.scroll_reverse_x = scroll_reverse_x;
 				client.scroll_reverse_y = scroll_reverse_y;
 				client.vrefresh = vrefresh;
+				client.device_dpi_scaling = device_dpi_scaling;
 				client.scale = scale;
+				client.browser_native_notifications = browser_native_notifications;
 				//example overrides:
 				//client.HELLO_TIMEOUT = 3600000;
 				//client.PING_TIMEOUT = 60000;
@@ -1431,34 +1447,39 @@
 			}
 
 			var autohide_timer = null;
-			function expand_float_menu(){
+			function expand_float_menu(e){
+				var el = $("#float_menu");
 				if (getboolparam("window_tray", false, true)) {
 					clearTimeout(autohide_timer);
-					var el = $("#float_menu");
 					el.stop().animate({top: 0}, 250);
 					return;
 				}
 				var num_menu_items = 4;
 				if ($('#application_button').is(":visible")) num_menu_items++;
 				const expanded_width = (float_menu_item_size*num_menu_items);
-				const float_menu = document.getElementById('float_menu');
-				float_menu.style.display = "inline-block";
-				float_menu.style.width = expanded_width +'px';
-				$('#float_menu').children().show();
+				el.children().show();
+				el.css("width", expanded_width + "px");
 				if(client){
 					client.reconfigure_all_trays();
 				}
 			}
 			
-			function retract_float_menu() {
+			function retract_float_menu(e) {
+				if (!getboolparam("autohide", false, true)) return;
+				var el = $("#float_menu");
 				if (getboolparam("window_tray", false, true)) {
-					var el = $("#float_menu");
+					if (el.is(":hover") || $("#float_menu_actions").is(":hover") || $(".keyboard-layout-buttons ul").is(":visible") || $("#menu_list").is(":visible")) return;
 					autohide_timer = setTimeout( () => {
 						el.stop().animate({top: -29}, 250);
 					}, 700);
 					return;
 				}
-				document.getElementById('float_menu').style.width ='0px'; $('#float_menu').children().hide();
+				if (el.is(":hover") || $("#float_menu #menu_list").is(":visible") || $("#float_menu").hasClass("ui-draggable-dragging")) return;
+				el.width(0);
+				el.children().hide();
+				if(client){
+					client.reconfigure_all_trays();
+				}
 			}
 
 			let client;
@@ -1577,6 +1598,21 @@
 						}
 					}, 1000);
 				}
+
+				var is_resizing = false;
+				$(window).on("resize", (e) => {
+					if (!is_resizing && client.scale !== window.devicePixelRatio) {
+						is_resizing = true;
+						console.log("DPI changed, reloading");
+						showLoadingScreen();
+						setTimeout(() => {
+							is_resizing = false;
+							client.disconnect_reason='DPI changed';
+							client.close();
+							location.reload();
+						}, 800);
+					}
+				});
 			}
 
 			$(document).ready(function() {

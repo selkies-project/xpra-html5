@@ -7,9 +7,9 @@ $(function() {
 
 		if (type === "info" && title === "Network Performance Issue") {
 			window.showNetworkCongestionNotification(nid, timeout, onClose);
+		} else {
+			console.log("unhandled notification", type, title, message);
 		};
-
-		
 	};
 
 	window._notification_button = function(nid, action_id, action_label, onAction, onClose) {

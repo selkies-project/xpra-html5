@@ -73,6 +73,8 @@ SOFTWARE.
         setTimeout(function(){
             ul.classList.remove("-visible");
             ul.classList.remove("-animating");
+            // retract float menu when clicking away from open menu.
+            retract_float_menu();
         }, 300);
     }
 

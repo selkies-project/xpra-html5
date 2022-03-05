@@ -148,7 +148,7 @@ XpraWindow.prototype.add_window_decorations = function() {
 	if (this.scale!==1) {
 		jQuery(this.div).draggable({ transform: true });
 	}
-	jQuery(this.div).draggable({ cancel: "canvas" });
+	jQuery(this.div).draggable({ cancel: "canvas, .windowbuttons" });
 	jQuery("#head"+String(this.wid)).click(function(ev) {
 		if (!me.minimized) {
 			me.set_focus_cb(me);

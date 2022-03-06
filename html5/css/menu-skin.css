@@ -221,7 +221,7 @@ SOFTWARE.
     z-index: 80000;
     background-color: rgba(0, 0, 0, 0.7);
     box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.5);
-    border-radius: 2px;
+    border-radius: 5px;
     padding: 20px;
 }
 
@@ -254,6 +254,7 @@ SOFTWARE.
 }
 
 .window-preview-item-text {
+    font-family: Arial, Helvetica, sans-serif !important;
     color: #FFF;
     white-space: nowrap;
     overflow: hidden;

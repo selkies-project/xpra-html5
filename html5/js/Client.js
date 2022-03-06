@@ -1993,6 +1993,7 @@ XpraClient.prototype.toggle_window_preview = function(init_cb) {
 		// Text
 		var item_text_el = $("<div>");
 		item_text_el.addClass("window-preview-item-text");
+		item_text_el.attr("title", win.title);
 		item_text_el.text(win.title);
 
 		// Window image

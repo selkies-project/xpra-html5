@@ -12,3 +12,7 @@
 
 # external dependencies
 /html5/flags
+
+# generated during dev
+/html5/default-settings.txt.orig
+/html5/connect.html.orig

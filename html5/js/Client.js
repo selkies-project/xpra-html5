@@ -76,6 +76,7 @@ XpraClient.prototype.init_settings = function() {
 	this.key_packets = [];
 	this.clipboard_delayed_event_time = 0;
 
+	this.device_dpi_scaling = false;
 	this.scale = 1;
 	this.vrefresh = -1;
 	this.bandwidth_limit = 0;
@@ -228,6 +229,8 @@ XpraClient.prototype.init_state = function() {
 	else if (Utilities.isEventSupported("DOMMouseScroll")) {
 		div.addEventListener('DOMMouseScroll',	on_mousescroll, false); // for Firefox
 	}
+
+	this.browser_native_notifications = true;
 };
 
 XpraClient.prototype.send = function() {
@@ -597,14 +600,19 @@ XpraClient.prototype._screen_resized = function(event, ctx) {
 	if (!this.connected) {
 		return;
 	}
+
+	/*
 	if (this.container.clientWidth==this.desktop_width && this.container.clientHeight==this.desktop_height) {
 		return;
 	}
+	*/
+
 	this.desktop_width = this.container.clientWidth;
 	this.desktop_height = this.container.clientHeight;
 	const newsize = [this.desktop_width, this.desktop_height];
 	const packet = ["desktop_size", newsize[0], newsize[1], this._get_screen_sizes()];
 	ctx.send(packet);
+
 	// call the screen_resized function on all open windows
 	for (const i in ctx.id_to_window) {
 		const iwin = ctx.id_to_window[i];
@@ -618,18 +626,20 @@ XpraClient.prototype._screen_resized = function(event, ctx) {
 				iwin.set_fullscreen(true);
 				iwin.screen_resized();
 			}
+			ctx.redraw_windows();
 		}
 
 		// Make a DESKTOP-type window fullscreen automatically.
 		// This resizes things like xfdesktop according to the window size.
-		if (iwin.fullscreen === false && client.is_window_desktop(iwin)) {
+		if (iwin.fullscreen === false && ctx.is_window_desktop(iwin)) {
 			clog("auto fullscreen desktop window: " + iwin.metadata.title);
 			iwin.set_fullscreen(true);
 			iwin.screen_resized();
+			ctx.redraw_windows();
 		}
 	}
 	// Re-position floating toolbar menu
-	init_float_menu();
+	this.position_float_menu();
 };
 
 /**
@@ -780,11 +790,12 @@ XpraClient.prototype._check_browser_language = function(key_layout) {
 		return;
 	}
 	let detect_browser_language = getboolparam("detect_browser_language", true, true);
+	let keyboard_layout_buttons = getboolparam("keyboard_layout_buttons", false, true);
 	let new_variant = "";
 	let new_layout;
 	if (key_layout) {
 		new_layout = key_layout;
-	} else if (detect_browser_language) {
+	} else if (detect_browser_language && !keyboard_layout_buttons) {
 		//we may have used a different layout for a specific key,
 		//and now this new key doesn't need it anymore,
 		//so we may want to switch back to the original layout:
@@ -1993,6 +2004,7 @@ XpraClient.prototype.toggle_window_preview = function(init_cb) {
 		// Text
 		var item_text_el = $("<div>");
 		item_text_el.addClass("window-preview-item-text");
+		item_text_el.attr("title", win.title);
 		item_text_el.text(win.title);
 
 		// Window image
@@ -2189,6 +2201,10 @@ XpraClient.prototype._process_disconnect = function(packet, ctx) {
 XpraClient.prototype._process_startup_complete = function(packet, ctx) {
 	ctx.log("startup complete");
 	ctx.emit_connection_established();
+
+	// force recheck of window sizes, this is needed when resizing between DPIs
+	// and there are forced fullscreen windows present.
+	ctx._screen_resized(null, ctx);
 };
 
 XpraClient.prototype._connection_change = function(e) {
@@ -2721,10 +2737,11 @@ XpraClient.prototype.stop_info_timer = function() {
 
 XpraClient.prototype.position_float_menu = function() {
 	const float_menu_element = $('#float_menu');
-	var toolbar_width = float_menu_element.width();
-	var left = float_menu_element.offset().left || 0;
-	var top = float_menu_element.offset().top || 0;
-	var screen_width = $('#screen').width();
+	float_menu_element.css("zoom", client.scale);
+	var toolbar_width = float_menu_element.outerWidth() * client.scale;
+	var left = float_menu_element.offset().left * client.scale || 0;
+	var top = float_menu_element.offset().top * client.scale || 0;
+	var screen_width = $(window).width();
 	if (this.toolbar_position=="custom") {
 		//no calculations needed
 	}
@@ -2734,10 +2751,14 @@ XpraClient.prototype.position_float_menu = function() {
 	else if (this.toolbar_position=="top") {
 		left = screen_width/2-toolbar_width/2;
 	}
-	else if (this.toolbar_position=="top-right") {
-		left = screen_width-toolbar_width-100;
-	}
 	float_menu_element.offset({ top: top, left: left });
+	float_menu_element.css("top", top);
+	float_menu_element.css("left", left);
+
+	// HiDPI workaround for Safari on iOS
+	if (Utilities.isSafari() && Utilities.isMobile()) {
+		$("#float_menu_window_list, #float_menu_actions").css("font-size", `${15*this.scale}px`);
+	}
 }
 
 XpraClient.prototype._process_new_tray = function(packet, ctx) {
@@ -2804,21 +2825,13 @@ XpraClient.prototype._tray_closed = function(win) {
 };
 
 XpraClient.prototype.reconfigure_all_trays = function() {
-	const float_menu = document.getElementById("float_menu");
-	float_menu_width = (float_menu_item_size*4) + float_menu_padding;
 	for (const twid in this.id_to_window) {
 		const twin = this.id_to_window[twid];
 		if (twin && twin.tray) {
-			float_menu_width = float_menu_width + float_menu_item_size;
 			this.send_tray_configure(twid);
 		}
 	}
-
-	// only set if float_menu is visible
-	if($('#float_menu').width() > 0){
-		float_menu.style.width = float_menu_width;
-		this.position_float_menu();
-	}
+	this.position_float_menu();
 };
 
 
@@ -3183,19 +3196,21 @@ XpraClient.prototype._process_notify_show = function(packet, ctx) {
 		};
 	}
 
-	if ("Notification" in window && actions.length==0) {
-		//we have notification support in the browser
-		if (Notification.permission === "granted") {
-			notify();
-			return;
-		}
-		else if (Notification.permission !== "denied") {
-			Notification.requestPermission(function (permission) {
-				if (permission === "granted") {
-					notify();
-				}
-			});
-			return;
+	if (ctx.browser_native_notifications === true) {
+		if ("Notification" in window && actions.length==0) {
+			//we have notification support in the browser
+			if (Notification.permission === "granted") {
+				notify();
+				return;
+			}
+			else if (Notification.permission !== "denied") {
+				Notification.requestPermission(function (permission) {
+					if (permission === "granted") {
+						notify();
+					}
+				});
+				return;
+			}
 		}
 	}
 	

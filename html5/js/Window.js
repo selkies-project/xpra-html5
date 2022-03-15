@@ -84,10 +84,10 @@ function XpraWindow(client, wid, x, y, w, h,
 	this.icon = null;
 
 	// get offsets
-	this.leftoffset = parseInt(jQuery(this.div).css('border-left-width'), 10);
-	this.rightoffset = parseInt(jQuery(this.div).css('border-right-width'), 10);
-	this.topoffset = parseInt(jQuery(this.div).css('border-top-width'), 10);
-	this.bottomoffset = parseInt(jQuery(this.div).css('border-bottom-width'), 10);
+	this.leftoffset = parseInt(jQuery(this.div).css('border-left-width'), 10) * this.client.scale;
+	this.rightoffset = parseInt(jQuery(this.div).css('border-right-width'), 10) * this.client.scale;
+	this.topoffset = parseInt(jQuery(this.div).css('border-top-width'), 10) * this.client.scale;
+	this.bottomoffset = parseInt(jQuery(this.div).css('border-bottom-width'), 10) * this.client.scale;
 
 	// update metadata that is safe before window is drawn
 	this.update_metadata(metadata, true);
@@ -140,15 +140,15 @@ XpraWindow.prototype.add_window_decorations = function() {
 			'<span class="windowicon"><img class="windowicon" id="windowicon' + String(wid) + '" /></span> '+
 			'<span class="windowtitle" id="title' + String(wid) + '">' + this.title + '</span> '+
 			'<span class="windowbuttons"> '+
-			'<span id="minimize' + String(wid) + '"><img src="icons/minimize.png" /></span> '+
-			'<span id="maximize' + String(wid) + '"><img src="icons/maximize.png" /></span> '+
-			'<span id="close' + String(wid) + '"><img src="icons/close.png" /></span> '+
+			'<span id="minimize' + String(wid) + '" class="mdi mdi-window-minimize" title="minimize to tray"></span> '+
+			'<span id="maximize' + String(wid) + '" class="mdi mdi-window-maximize" title="maximize"></span> '+
+			'<span id="close' + String(wid) + '" class="mdi mdi-window-close" title="close"></span> '+
 			'</span></div>');
 	// make draggable
 	if (this.scale!==1) {
 		jQuery(this.div).draggable({ transform: true });
 	}
-	jQuery(this.div).draggable({ cancel: "canvas" });
+	jQuery(this.div).draggable({ cancel: "canvas, .windowbuttons" });
 	jQuery("#head"+String(this.wid)).click(function(ev) {
 		if (!me.minimized) {
 			me.set_focus_cb(me);
@@ -163,12 +163,6 @@ XpraWindow.prototype.add_window_decorations = function() {
 		client.mouse_grabbed = false;
 		me.handle_moved(ui);
 	});
-	// Use transform if scaled
-	// This disables helper highlight, so we
-	// move the resizable borders in transform plugin
-	if (this.scale!==1) {
-		jQuery(this.div).resizable({ transform: true });
-	}
 	// attach resize handles
 	jQuery(this.div).resizable({ containment: 'parent', helper: "ui-resizable-helper", "handles": "n, e, s, w, ne, se, sw, nw" });
 	//jQuery(this.div).on("resize",jQuery.debounce(50, function(ev,ui) {
@@ -216,7 +210,7 @@ XpraWindow.prototype.add_window_decorations = function() {
 		jQuery(this.d_minimizebtn).hide();
 	}
 	// adjust top offset
-	this.topoffset = this.topoffset + parseInt(jQuery(this.d_header).css('height'), 10);
+	this.topoffset = (this.topoffset + parseInt(jQuery(this.d_header).outerHeight(), 10)) * this.client.scale;
 	// stop propagation if we're over the window:
 	jQuery(this.div).mousedown(function (e) {
 		e.stopPropagation();
@@ -377,8 +371,8 @@ XpraWindow.prototype.ensure_visible = function() {
 	else if (oldx >= ww - min_visible) {
 		this.x = Math.min(oldx, ww - min_visible);
 	}
-	if(oldy<=this.topoffset && oldy <= min_visible) {
-		this.y = parseInt(this.topoffset);
+	if(oldy<=this.topoffset*this.client.scale && oldy <= min_visible) {
+		this.y = parseInt(this.topoffset*this.client.scale);
 	}
 	else if (oldy >= wh - min_visible) {
 		this.y = Math.min(oldy, wh - min_visible);
@@ -419,16 +413,23 @@ XpraWindow.prototype.updateCSSGeometry = function() {
 		return;
 	}
 	// work out outer size
-	this.outerH = this.h + this.topoffset + this.bottomoffset;
-	this.outerW = this.w + this.leftoffset + this.rightoffset;
+	this.outerH = this.h + (this.topoffset + this.bottomoffset) * this.client.scale;
+	this.outerW = this.w + (this.leftoffset + this.rightoffset) * this.client.scale;
 	// set width and height
 	jQuery(this.div).css('width', this.outerW);
 	jQuery(this.div).css('height', this.outerH);
 	// set CSS attributes to outerX and outerY
-	this.outerX = this.x - this.leftoffset;
-	this.outerY = this.y - this.topoffset;
+	this.outerX = this.x - (this.leftoffset * this.client.scale);
+	this.outerY = this.y - (this.topoffset * this.client.scale);
 	jQuery(this.div).css('left', this.outerX);
 	jQuery(this.div).css('top', this.outerY);
+	jQuery("#head"+String(this.wid)).css("zoom", this.client.scale);
+
+	// HiDPI workaround for Safari on iOS
+	if (Utilities.isSafari() && Utilities.isMobile()) {
+		jQuery("#head"+String(this.wid) + " .windowtitle").css("font-size", `${16*this.client.scale}px`);
+	}
+
 	this.debug("geometry", "updateCSSGeometry() left=", this.outerX, ", top=", this.outerY, ", width=", this.outerW, ", height=", this.outerH);
 };
 
@@ -841,13 +842,13 @@ XpraWindow.prototype.set_fullscreen = function(fullscreen) {
 
 
 XpraWindow.prototype._set_decorated = function(decorated) {
-	this.topoffset = parseInt(jQuery(this.div).css('border-top-width'), 10);
+	this.topoffset = parseInt(jQuery(this.div).css('border-top-width'), 10) * this.client.scale;
 	if (decorated) {
 		jQuery('#head' + this.wid).show();
 		jQuery(this.div).removeClass("undecorated");
 		jQuery(this.div).addClass("window");
 		if (this.d_header) {
-			this.topoffset = this.topoffset + parseInt(jQuery(this.d_header).css('height'), 10);
+			this.topoffset = this.topoffset + parseInt(jQuery(this.d_header).css('height'), 10) * this.client.scale;
 			this.debug("geometry", "_set_decorated(", decorated, ") new topoffset=", self.topoffset);
 		}
 	}
@@ -881,10 +882,10 @@ XpraWindow.prototype.fill_screen = function() {
 	// in future we may have a taskbar for minimized windows
 	// which should be subtracted from screen size
 	const screen_size = this.client._get_desktop_size();
-	this.x = this.leftoffset;
-	this.y = this.topoffset;
-	this.w = (screen_size[0] - this.leftoffset) - this.rightoffset;
-	this.h = (screen_size[1] - this.topoffset) - this.bottomoffset - TASKBAR_HEIGHT;
+	this.x = this.leftoffset * this.client.scale;
+	this.y = this.topoffset * this.client.scale;
+	this.w = (screen_size[0] - (this.leftoffset * this.client.scale)) - (this.rightoffset * this.client.scale);
+	this.h = (screen_size[1] - (this.topoffset * this.client.scale)) - (this.bottomoffset * this.client.scale) - TASKBAR_HEIGHT;
 	this.debug("geometry", "fill_screen() ", this.x, this.y, this.w, this.h);
 };
 
@@ -904,8 +905,8 @@ XpraWindow.prototype.handle_resized = function(e) {
 	if(e) {
 		this.x = this.x + Math.round(e.position.left - e.originalPosition.left);
 		this.y = this.y + Math.round(e.position.top - e.originalPosition.top);
-		this.w = Math.round(e.size.width) - this.leftoffset - this.rightoffset;
-		this.h = Math.round(e.size.height) - this.topoffset - this.bottomoffset;
+		this.w = (Math.round(e.size.width) - this.leftoffset - this.rightoffset) * this.client.scale;
+		this.h = (Math.round(e.size.height) - this.topoffset - this.bottomoffset) * this.client.scale;
 	}
 	// then update CSS and redraw backing
 	this.updateCSSGeometry();
@@ -924,8 +925,8 @@ XpraWindow.prototype.handle_moved = function(e) {
 	// add on padding to the event position so that
 	// it reflects the internal geometry of the canvas
 	//this.log("handle moved: position=", e.position.left, e.position.top);
-	this.x = left + this.leftoffset;
-	this.y = top + this.topoffset;
+	this.x = left + (this.leftoffset * this.client.scale);
+	this.y = top + (this.topoffset * this.client.scale);
 	// make sure we are visible after move
 	this.ensure_visible();
 	// tell remote we have moved window

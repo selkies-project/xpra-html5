@@ -23,3 +23,20 @@
 .Icon.-small {
     font-size: 18px;
 }
+
+*[data-headicon]:before {
+    display: inline-block;
+    position: relative;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+
+    font-family: "materialicons";
+    font-size: 16px;
+    text-align: center;
+
+    content: attr(data-headicon);
+
+    /* This is important for IE, which has it off by default */
+    font-feature-settings: "liga" 1;
+}

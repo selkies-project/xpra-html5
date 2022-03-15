@@ -118,6 +118,7 @@ function addWindowTrayItem(wid, title) {
 	const li = document.createElement("li");
 	li.className="windowlist-li-new";
 	li.id = "windowlistitem"+wid;
+	li.setAttribute("title", title);
 
 	const a = document.createElement("a");
 
@@ -201,51 +202,45 @@ function init_float_menu() {
 	if (!floating_menu) {
 		float_menu_element.hide();
 	} else {
+		if (float_menu_element.is(":visible")) return;
 		float_menu_element.show();
-		float_menu_element.css('display', "inline-flex");
-		var toolbar_width = float_menu_element.width();
-		var left = float_menu_element.offset().left || 0;
-		var top = float_menu_element.offset().top || 0;
-		var screen_width = $('#screen').width();
-		if (toolbar_position=="custom") {
-			//no calculations needed
+		if (window_tray) {
+			float_menu_element.css('display', "inline-flex");
+		} else {
+			float_menu_element.css("position", "absolute");
 		}
-		else if (toolbar_position=="top-left") {
-			//no calculations needed
-		}
-		else if (toolbar_position=="top") {
-			left = screen_width/2-toolbar_width/2;
-		}
-		float_menu_element.offset({ top: top, left: left });
+		client.position_float_menu();
 
 		if (autohide) {
-			float_menu_element.on('mouseover', expand_float_menu);
-			float_menu_element.on('mouseout', retract_float_menu);
+			bind_autohide_handlers();
 			retract_float_menu();
 		} else {
-			float_menu_element.off('mouseover', expand_float_menu);
-			float_menu_element.off('mouseout', retract_float_menu);
+			unbind_autohide_handlers();
 			expand_float_menu();
 		}
 		update_autohide_menu_element(autohide);
+		update_hidpi_menu_element(client.device_dpi_scaling);
 
 		// if draggable has already been set, don't re-bind the handlers.
 		if (!float_menu_element.hasClass("ui-draggable")) {
-
-			float_menu_element.draggable({
-				cancel: '.noDrag',
-				containment: 'window',
-				scroll: false
-			});
-			float_menu_element.on("dragstart",function(ev,ui){
-				client.mouse_grabbed = true;
-				//set_focus_cb(0);
-			});
-			float_menu_element.on("dragstop",function(ev,ui){
-				client.mouse_grabbed = false;
-				client.toolbar_position="custom";
-				client.reconfigure_all_trays();
-			});
+			if (!window_tray) {
+				var toolbar_width = float_menu_element.outerWidth() * client.scale;
+				var toolbar_height = float_menu_element.outerHeight() * client.scale;
+				float_menu_element.draggable({
+					cancel: '.noDrag',
+					containment: 'window',
+					scroll: false,
+					cursorAt: { left: toolbar_width/2, top: toolbar_height/2 },
+				});
+				float_menu_element.on("dragstart",function(ev,ui){
+					client.mouse_grabbed = true;
+				});
+				float_menu_element.on("dragstop",function(ev,ui){
+					client.mouse_grabbed = false;
+					client.toolbar_position="custom";
+					client.reconfigure_all_trays();
+				});
+			}
 
 			// Configure the fullscreen button.
 			$('#fullscreen').on('click', function (e) {
@@ -372,17 +367,34 @@ function toggle_menu_auto_hide() {
 
 	update_autohide_menu_element(newvalue);
 
-	var float_menu_element = $('#float_menu');
-
 	if (newvalue) {
-		float_menu_element.on('mouseover', expand_float_menu);
-		float_menu_element.on('mouseout', retract_float_menu);
+		bind_autohide_handlers();
 		retract_float_menu();
 	} else {
-		float_menu_element.off('mouseover', expand_float_menu);
-		float_menu_element.off('mouseout', retract_float_menu);
+		unbind_autohide_handlers();
 		expand_float_menu();
 	}
+}
+
+function update_hidpi_menu_element(state) {
+
+	if (getboolparam("device_dpi_scaling", false, true)) {
+		$('.hidpi_menu').text("Disable HiDPI");
+	} else {
+		$('.hidpi_menu').text("Enable HiDPI");
+	}
+}
+
+function toggle_menu_hidpi() {
+	var oldvalue = getboolparam("device_dpi_scaling", false, true);
+	var newvalue = !oldvalue;
+
+	// set and persist user value.
+	setparam("device_dpi_scaling", newvalue, true);
+	client.device_dpi_scaling = newvalue;
+
+	// reload page to effect change.
+	location.reload();
 }
 
 function swap_menu_trays() {
@@ -395,4 +407,20 @@ function swap_menu_trays() {
 
 	// Need to reload because there are overlapping element IDs if we try to live swap.
 	location.reload();
+}
+
+function bind_autohide_handlers() {
+	var float_menu_element = $('#float_menu');
+	float_menu_element.on('mouseenter', expand_float_menu);
+	float_menu_element.on('mouseleave', retract_float_menu);
+
+	// support showing tray with swipe down.
+	$(document).swipeDetector().on("swipeDown.sd", expand_float_menu);
+}
+
+function unbind_autohide_handlers() {
+	var float_menu_element = $('#float_menu');
+	float_menu_element.off('mouseenter', expand_float_menu);
+	float_menu_element.off('mouseleave', retract_float_menu);
+	$(document).swipeDetector().off("swipeDown.sd", expand_float_menu);
 }

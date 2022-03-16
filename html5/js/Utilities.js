@@ -578,6 +578,33 @@ const Utilities = {
 		return value;
 	},
 
+	getsessionparam : function(prop, withprefix) {
+		var key = prop;
+		if (withprefix === true) {
+			var prefix = window.location.pathname.endsWith("/") && (window.location.pathname.split("/")[1]) || "xpra";
+			key = prefix + "_" + prop;
+		}
+		try {
+			return sessionStorage.getItem(key);
+		}
+		catch (e) {
+			return null;
+		}
+	},
+
+	setsessionparam : function(prop, value, withprefix) {
+		var key = prop;
+		if (withprefix === true) {
+			var prefix = window.location.pathname.endsWith("/") && (window.location.pathname.split("/")[1]) || "xpra";
+			key = prefix + "_" + prop;
+		}
+		try {
+			sessionStorage.setItem(key, value);
+		}
+		catch (e) {
+			// do nothing
+		}
+	},
 
 	getboolparam : function(prop, default_value) {
 		const v = Utilities.getparam(prop);

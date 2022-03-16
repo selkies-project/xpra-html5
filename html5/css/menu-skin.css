@@ -96,7 +96,7 @@ SOFTWARE.
 }
 
 /* SELKIES - invert colors on action buttons */
-.float-menu-new .window-list-button, .float-menu-new .fullscreen-button, .float-menu-new .keyboard-button, .float-menu-new .audio-button, .float-menu-new .menu-button {
+.float-menu-new .remote-apps-button, .window-list-button, .float-menu-new .fullscreen-button, .float-menu-new .keyboard-button, .float-menu-new .audio-button, .float-menu-new .menu-button {
     filter: invert(1);
 }
 
@@ -115,6 +115,34 @@ SOFTWARE.
 }
 .keyboard-layout-menu .keyboard-layout-text {
     filter: invert(1);
+}
+
+/* SELKIES - make remote apps menu same color as tray */
+.remote-apps-menu {
+    background-color: #3e3e3e !important;
+}
+.remote-apps-menu .remote-apps-menu-text {
+    filter: invert(1);
+}
+.remote-apps-menu a {
+    padding-left: 5px;
+}
+.remote-apps-menu .remote-apps-menu-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 5px;
+    margin-top: 2px;
+    float: left;
+}
+.remote-apps-menu .remote-apps-menu-open-new {
+    position: absolute;
+    right: 0;
+    top: 0;
+    filter: invert(1);
+    cursor: pointer;
+}
+.remote-app-menu-item {
+    padding-right: 50px !important;
 }
 
 .menu-divleft {

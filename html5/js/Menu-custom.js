@@ -275,9 +275,6 @@ function init_float_menu() {
 				}
 			});
 		}
-
-		// Configure the apps button.
-		update_apps_button();
 	}
 }
 
@@ -309,42 +306,6 @@ function set_keyboard_layout(el, default_layout) {
 
 	// persist keyboard layout for user.
 	setparam("keyboard_layout", $(el).attr("id").replace("keyboard-layout-", ""), true);
-}
-
-function update_apps_button() {
-	// WIP
-	return;
-
-	// Configure the apps button.
-	var apps_element = $('#application_button');
-	var desktop_win = client.get_desktop_window();
-	if (desktop_win !== null) {
-		apps_element.show();
-		expand_float_menu();
-	} else {
-		// No desktop window, remove the apps button and update the menu width.
-		console.log("no desktop window found");
-		apps_element.hide();
-		expand_float_menu();
-	}
-}
-
-function apps_button_click() {
-	const apps_element = $('#application_button');
-	const pos = apps_element.offset();
-	const btn_height = apps_element.height();
-
-	const x = pos.left;
-	const y = pos.top + btn_height + 5;
-
-	console.log("showing apps menu at ("+x+","+y+")");
-
-	var desktop_win = client.get_desktop_window();
-	if (desktop_win !== null) {
-		// Send right click event to Desktop window to open applications dialog.
-		client.send(["button-action", desktop_win.wid, 3, true, [x, y], {}, []]); // modifiers, buttons]);
-		client.send(["button-action", desktop_win.wid, 3, false, [x, y], {}, []]); // modifiers, buttons]);
-	}
 }
 
 function update_autohide_menu_element(autohide) {
@@ -415,12 +376,17 @@ function bind_autohide_handlers() {
 	float_menu_element.on('mouseleave', retract_float_menu);
 
 	// support showing tray with swipe down.
-	$(document).swipeDetector().on("swipeDown.sd", expand_float_menu);
+	if (Utilities.isSafari() && Utilities.isMobile()) {
+		$(document).swipeDetector().on("swipeDown.sd", expand_float_menu);
+	}
 }
 
 function unbind_autohide_handlers() {
 	var float_menu_element = $('#float_menu');
 	float_menu_element.off('mouseenter', expand_float_menu);
 	float_menu_element.off('mouseleave', retract_float_menu);
-	$(document).swipeDetector().off("swipeDown.sd", expand_float_menu);
+
+	if (Utilities.isSafari() && Utilities.isMobile()) {
+		$(document).swipeDetector().off("swipeDown.sd", expand_float_menu);
+	}
 }

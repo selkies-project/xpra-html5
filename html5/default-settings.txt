@@ -1,10 +1,25 @@
-# Xpra HTML5 default settings
+
 #
-# ie:
-# port = 10000
-# keyboard_layout = gb
-# encoding = auto
+# Xpra HTML5 default settings
 # bandwidth_limit = 10000000
 # debug_keyboard = true
-
+# encoding = auto
+# ie:
+# keyboard_layout = gb
+# port = 10000
+apppath = xpra
+auto_fullscreen_desktop_class = xfdesktop
+autohide = true
 blocked-hosts = xpra.org,www.xpra.org
+browser_native_notifications = false
+clipboard_direction = both
+device_dpi_scaling = true
+encoding = jpeg
+floating_menu = true
+keyboard = false
+path = /xpra/ws
+remote_apps = true
+sound = false
+toolbar_position = top
+video = false
+window_tray = true

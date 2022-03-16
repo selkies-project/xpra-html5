@@ -83,11 +83,16 @@
 		<link rel="stylesheet" type="text/css" href="css/notifications-custom.css"/>
 
 		<!-- sparkline plugin for stats graphs -->
-		<script type="application/javascript" src="js/jquery.sparkline.js"></script>
+		<script type="application/javascript" src="js/lib/jquery.sparkline.js"></script>
 
 		<!-- loading screen plugin -->
 		<script type="application/javascript" src="js/LoadingScreen.js"></script>
 		<link rel="stylesheet" href="css/loading-screen.css">
+
+		<!-- BEGIN SELKIES PWA feature -->
+		<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+		<meta name="theme-color" content="white"/>
+		<!-- END SELKIES PWA feature -->
 	</head>
 
 	<body>
@@ -124,6 +129,10 @@
 				</div>
 				<div id="window_tray_actions_content">
 					<ul id="float_menu_actions" class="Menu -horizontal">
+						<li class="-hasSubmenu -noChevron remote-apps-buttons" style="display: none">
+							<!-- this feature is gated by the html5 default-setttings remote_apps=true -->
+							<a href="#" class="remote-apps-button" title="Apps" data-icon="apps"></a>
+						</li>
 						<li class="-hasSubmenu -noChevron">
 							<a href="#" class="window-list-button" onclick="client.toggle_window_preview()" title="Show Open Windows" data-icon="filter"></a>
 						</li>
@@ -189,11 +198,6 @@
 
 			<div id="float_menu">
 				<ul class="Menu -horizontal noDrag">
-					<!-- WIP apps button
-					<li class="-hasSubmenu -noChevron">
-						<a href="#" id="application_button" onclick="apps_button_click()" title="Applications" data-icon="apps"></a>
-					</li>
-				    -->
 					<li class="-hasSubmenu -noChevron">
 						<a href="#" title="Open Windows" data-icon="filter"></a>
 						<ul id="open_windows_list">
@@ -749,7 +753,10 @@
 				const override_width = getfloatparam("override_width", window.innerWidth);
 				const device_dpi_scaling = getboolparam("device_dpi_scaling",false, true);
 				const browser_native_notifications = getboolparam("browser_native_notifications", true);
-
+				const client_uuid = getparam("uuid") || "";
+				const maximize_wid = getparam("maximize_wid") || "";
+				const fullscreen_windows = getboolparam("fullscreen_windows", false);
+				const resize_screen = getboolparam("resize_screen", true);
 				vrefresh = getintparam("vrefresh", -1);
 				if (vrefresh<0 && fps>=30) {
 					vrefresh = fps;
@@ -857,6 +864,14 @@
 				//client.PING_TIMEOUT = 60000;
 				//client.PING_GRACE = 30000;
 				//client.PING_FREQUENCY = 15000;
+
+				client.maximize_wid = maximize_wid;
+				client.fullscreen_windows = fullscreen_windows;
+
+				if (client_uuid !== "") {
+					client.uuid = client_uuid;
+				}
+				client.resize_screen = resize_screen;
 
 				if (debug) {
 					//example of client event hooks:
@@ -1455,7 +1470,6 @@
 					return;
 				}
 				var num_menu_items = 4;
-				if ($('#application_button').is(":visible")) num_menu_items++;
 				const expanded_width = (float_menu_item_size*num_menu_items);
 				el.children().show();
 				el.css("width", expanded_width + "px");
@@ -1468,7 +1482,7 @@
 				if (!getboolparam("autohide", false, true)) return;
 				var el = $("#float_menu");
 				if (getboolparam("window_tray", false, true)) {
-					if (el.is(":hover") || $("#float_menu_actions").is(":hover") || $(".keyboard-layout-buttons ul").is(":visible") || $("#menu_list").is(":visible")) return;
+					if (el.is(":hover") || $(".remote-apps-buttons ul").is(":visible") || $("#float_menu_actions").is(":hover") || $(".keyboard-layout-buttons ul").is(":visible") || $("#menu_list").is(":visible")) return;
 					autohide_timer = setTimeout( () => {
 						el.stop().animate({top: -29}, 250);
 					}, 700);
@@ -1483,6 +1497,7 @@
 			}
 
 			let client;
+			window.on_page_init_listeners = [];
 			window.stats_listeners = [];
 			function init_page() {
 				const touchaction = getparam("touchaction") || "scroll";
@@ -1613,6 +1628,11 @@
 						}, 800);
 					}
 				});
+
+				// Call on_page_init handlers
+				for (listener of window.on_page_init_listeners) {
+					listener();
+				}
 			}
 
 			$(document).ready(function() {
@@ -1640,8 +1660,18 @@
 				xhr.send();
 			});
 		</script>
-		<!-- stats graph addon -->
+
+		<!-- BEGIN SELKIES stats graph addon -->
 		<script type="application/javascript" src="js/StatsGraphs.js"></script>
 		<link rel="stylesheet" href="css/stats-graphs.css">
+		<!-- END SELKIES stats graph addon -->
+
+		<!-- BEGIN SELKIES remote apps addon -->
+		<script type="application/javascript" src="js/RemoteApps.js"></script>
+		<!-- END SELKIES remote apps addon -->
+
+		<!-- BEGIN SELKIES PWA feature -->
+		<script type="application/javascript">window.onload = () => {"use strict"; if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./sw.js");}}</script>
+		<!-- END SELKIES PWA feature -->
 	</body>
 </html>

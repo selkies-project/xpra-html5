@@ -140,6 +140,7 @@ XpraWindow.prototype.add_window_decorations = function() {
 			'<span class="windowicon"><img class="windowicon" id="windowicon' + String(wid) + '" /></span> '+
 			'<span class="windowtitle" id="title' + String(wid) + '">' + this.title + '</span> '+
 			'<span class="windowbuttons"> '+
+			'<span id="undock' + String(wid) + '" class="mdi mdi-dock-window" title="undock"></span> '+
 			'<span id="minimize' + String(wid) + '" class="mdi mdi-window-minimize" title="minimize to tray"></span> '+
 			'<span id="maximize' + String(wid) + '" class="mdi mdi-window-maximize" title="maximize"></span> '+
 			'<span id="close' + String(wid) + '" class="mdi mdi-window-close" title="close"></span> '+
@@ -187,11 +188,31 @@ XpraWindow.prototype.add_window_decorations = function() {
 	});
 	this.d_header = '#head' + String(wid);
 	this.d_closebtn = '#close' + String(wid);
+	this.d_dockbtn = '#undock' + String(wid);
 	this.d_maximizebtn = '#maximize' + String(wid);
 	this.d_minimizebtn = '#minimize' + String(wid);
 	if (this.resizable) {
 		jQuery(this.d_header).dblclick(function() {
 			me.toggle_maximized();
+		});
+		jQuery(this.d_dockbtn).click(function() {
+			const new_uuid = Utilities.getHexUUID();
+			const pid = me.metadata["wm-pid"];
+			// Stop sending the target window to the current client.
+			client.send(["filter-window-by-pid", "add", String(pid), "!=", client.uuid]);
+
+			// Only send the target window to new popup window.
+			client.send(["filter-window-by-pid", "add", String(pid), "=", new_uuid]);
+
+			// Open new browser window with the uuid we created earlier, the filter will cause only that window to appear.
+			var popup = window.open(
+				"index.html?uuid=" + new_uuid + "&resize_screen=false&fullscreen_windows=true&sharing=true",
+				"window"+String(wid),
+				"width="+String(client.id_to_window[wid].w)+",height="+String(client.id_to_window[wid].h),
+			);
+			window.removeWindowListItem(wid);
+			client.id_to_window[wid].destroy();
+			delete client.id_to_window[wid];
 		});
 		jQuery(this.d_closebtn).click(function() {
 			me.window_closed_cb(me);
@@ -823,6 +844,10 @@ XpraWindow.prototype.set_fullscreen = function(fullscreen) {
 	//because the window is about to cover the top bar...
 	//so just fullscreen the window:
 	if (this.fullscreen==fullscreen) {
+		return;
+	}
+	// Prevent popup windows from being made fullscreen.
+	if (this.metadata["window-type"].indexOf("POPUP_MENU") >= 0) {
 		return;
 	}
 	if (this.resizable) {

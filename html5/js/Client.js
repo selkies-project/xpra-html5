@@ -91,7 +91,8 @@ XpraClient.prototype.init_settings = function() {
 	this.PING_GRACE = 2000;
 	this.PING_FREQUENCY = 5000;
 	this.INFO_FREQUENCY = 1000;
-	this.uuid = Utilities.getHexUUID();
+	this.uuid = Utilities.getsessionparam("client_uuid", true) || Utilities.getHexUUID();
+	Utilities.setsessionparam("client_uuid", this.uuid, true);
 	this.offscreen_api = XpraOffscreenWorker.isAvailable();
 };
 
@@ -231,6 +232,8 @@ XpraClient.prototype.init_state = function() {
 	}
 
 	this.browser_native_notifications = true;
+	this.maximize_wid = null;
+	this.fullscreen_windows = false;
 };
 
 XpraClient.prototype.send = function() {
@@ -1396,7 +1399,7 @@ XpraClient.prototype._make_hello = function() {
 		"server-window-resize"		: true,
 		"screen-resize-bigger"		: false,
 		"metadata.supported"		: [
-										"fullscreen", "maximized", "iconic", "above", "below",
+										"fullscreen", "maximized", "iconic", "above", "below", "wm-pid",
 										//"set-initial-position", "group-leader",
 										"title", "size-hints", "class-instance", "transient-for", "window-type", "has-alpha",
 										"decorations", "override-redirect", "tray", "modal", "opacity",
@@ -1563,6 +1566,7 @@ XpraClient.prototype.do_window_mouse_move = function(e, window) {
 	if (this.server_readonly || this.mouse_grabbed || !this.connected) {
 		return;
 	}
+	// if (window === null) return;
 	const mouse = this.getMouse(e),
 		x = Math.round(mouse.x),
 		y = Math.round(mouse.y);
@@ -2892,8 +2896,12 @@ XpraClient.prototype._new_window = function(wid, x, y, w, h, metadata, override_
 		this._window_set_focus(win);
 	}
 
-	if (this.is_window_desktop(win)) {
-		update_apps_button();
+	if (String(wid) === this.maximize_wid) {
+		win.set_maximized(true);
+	}
+
+	if (this.fullscreen_windows) {
+		win.set_fullscreen(true);
 	}
 };
 

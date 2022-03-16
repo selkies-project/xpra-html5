@@ -4,11 +4,11 @@ html, body {
 	padding: 0;
 	margin: 0;
 	overflow: hidden;
-	background-color: #021d3a;
+	background-color: #3e3e3e;
 	background-image: url(../background.png);
 	background-position: center center;
 	background-repeat: no-repeat;
-	background-size: cover;
+	/* background-size: cover; */
 }
 
 div.window canvas {
@@ -127,6 +127,7 @@ canvas {
 	padding-right: 48px;
 	white-space: nowrap;
 	cursor: default;
+	width: 66%;
 }
 .windowbuttons {
 	display: inline-block;

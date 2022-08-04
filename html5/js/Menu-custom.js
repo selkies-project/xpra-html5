@@ -289,6 +289,10 @@ function set_keyboard_layout(el, default_layout) {
 			el = $("#keyboard-layout-us");
 		}
 	}
+	if ($(el).prop("nodeName") === "SPAN") {
+		// If the text is clicked on, get the parent element which has the ID.
+		el = $(el).parent();
+	}
 	var curr_icon_el = $("#current-keyboard-layout");
 	var curr_flag_icon = $(curr_icon_el).attr("class").match(new RegExp("flag-icon-(.*)$"))[0];
 	var new_flag_icon = null;

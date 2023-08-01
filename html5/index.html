@@ -1601,7 +1601,7 @@
 
 				var is_resizing = false;
 				$(window).on("resize", (e) => {
-					if (!is_resizing && client.scale !== window.devicePixelRatio) {
+					if (!is_resizing && client.device_dpi_scaling && client.scale !== window.devicePixelRatio) {
 						is_resizing = true;
 						console.log("DPI changed, reloading");
 						showLoadingScreen();

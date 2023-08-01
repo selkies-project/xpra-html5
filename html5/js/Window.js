@@ -905,8 +905,8 @@ XpraWindow.prototype.handle_resized = function(e) {
 	if(e) {
 		this.x = this.x + Math.round(e.position.left - e.originalPosition.left);
 		this.y = this.y + Math.round(e.position.top - e.originalPosition.top);
-		this.w = (Math.round(e.size.width) - this.leftoffset - this.rightoffset) * this.client.scale;
-		this.h = (Math.round(e.size.height) - this.topoffset - this.bottomoffset) * this.client.scale;
+		this.w = Math.round((e.size.width - this.leftoffset - this.rightoffset) * this.client.scale);
+		this.h = Math.round((e.size.height - this.topoffset - this.bottomoffset) * this.client.scale);
 	}
 	// then update CSS and redraw backing
 	this.updateCSSGeometry();
@@ -925,8 +925,8 @@ XpraWindow.prototype.handle_moved = function(e) {
 	// add on padding to the event position so that
 	// it reflects the internal geometry of the canvas
 	//this.log("handle moved: position=", e.position.left, e.position.top);
-	this.x = left + (this.leftoffset * this.client.scale);
-	this.y = top + (this.topoffset * this.client.scale);
+	this.x = Math.round(left + (this.leftoffset * this.client.scale));
+	this.y = Math.round(top + (this.topoffset * this.client.scale));
 	// make sure we are visible after move
 	this.ensure_visible();
 	// tell remote we have moved window
